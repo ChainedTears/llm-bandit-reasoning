@@ -76,3 +76,4 @@ for i in range(10):
     else:
         result = bandit_simulation(ai_response)
         ai_response = get_response(previous_outputs + "Choice: " + ai_response + " Result: " + result, prompt)
+        previous_outputs += "Choice: " + 1 + " Result: " + result + "\n"
