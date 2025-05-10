@@ -2,13 +2,15 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import secrets
 
+# Setup Meta-Llama-3.1-8N-Instruct with PyTorch
 # Specify Model ID
 
-model_id = "meta-llama/Llama-3.2-3B"
+model_id = "meta-llama/Llama-3.2-1B"
 
 # Setup MPS Device
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+print(f"Using device: {device}")
 
 # Load the tokenizer
 
@@ -35,9 +37,10 @@ def get_response(input_text, system_prompt):
     
     with torch.no_grad():
         outputs = model.generate(
-            inputs["input_ids"],
-            attention_mask=attention_mask,
-            max_length=200,
+            
+            inputs["input_ids"].to(device),
+            attention_mask=attention_mask.to(device),
+            max_length=50,
             num_return_sequences=1,
             temperature=0.7,
             pad_token_id=tokenizer.pad_token_id
@@ -77,11 +80,15 @@ def main():
     You start with 1, and will be told the results of your previous actions."""
     
     previous_outputs = ""
-    
+    correct, ratio, total, previous_choice = 0
     # Run for 10 iterations
-    for i in range(10):
-        print(f"Iteration {i + 1}")
-        if i == 0:
+    while not (total < 100 and ratio > 0.8):
+        if previous_choice == 2:
+            correct += 1
+        total += 1
+        ratio = correct / total
+        print(f"Iteration {total}")
+        if total == 0:
             choice = 1
             result = bandit_simulation(choice)
             previous_outputs += f"Choice: {choice} Result: {result}\n"
