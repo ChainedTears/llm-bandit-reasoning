@@ -1,6 +1,9 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import secrets
+from huggingface_hub import login
+
+login(token="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")
 
 # Setup Meta-Llama-3.1-8N-Instruct with PyTorch
 # Specify Model ID
