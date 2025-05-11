@@ -40,7 +40,7 @@ def get_response(input_text, system_prompt):
             
             inputs["input_ids"].to(device),
             attention_mask=attention_mask.to(device),
-            max_length=50,
+            max_new_tokens=50,
             num_return_sequences=1,
             temperature=0.7,
             pad_token_id=tokenizer.pad_token_id
@@ -80,7 +80,7 @@ def main():
     You start with 1, and will be told the results of your previous actions."""
     
     previous_outputs = ""
-    correct, ratio, total, previous_choice = 0
+    correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
     while not (total < 100 and ratio > 0.8):
         if previous_choice == 2:
