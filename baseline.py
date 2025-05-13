@@ -6,7 +6,7 @@ from huggingface_hub import login
 login(token="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")
 
 # Specify model ID 
-model_id = "mistralai/Mixtral-8x7B-v0.1"
+model_id = "meta-llama/Llama-3.2-1B"
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
@@ -63,90 +63,29 @@ if tokenizer and tokenizer.pad_token_id is None:
     # tokenizer.padding_side = "left" # Keep an eye on this if you do batching
 
 # Generate response function
-def get_response(input_text, system_prompt):
+
+def get_response(prompt, system_prompt):
     if model is None or tokenizer is None:
         return "Model or tokenizer not loaded."
 
-    print(f"\nGetting response for input: '{input_text}' with system prompt: '{system_prompt}'")
+    input_text = f"<|system|>\n{system_prompt}\n<|user|>\n{prompt}\n<|assistant|>\n"
+    inputs = tokenizer(input_text, return_tensors="pt").to(device)
 
-    # Construct messages for Llama 3 chat template
-    messages = []
-    if system_prompt and system_prompt.strip():
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": input_text})
-
-    # Apply the chat template
-    try:
-        prompt = tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
-        )
-    except Exception as e:
-        print(f"Warning: Error applying chat template: {e}. Using manual prompt (may be suboptimal).")
-        formatted_messages = ""
-        if system_prompt and system_prompt.strip():
-            formatted_messages += f"<|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|>"
-        formatted_messages += f"<|start_header_id|>user<|end_header_id|>\n\n{input_text}<|eot_id|>"
-        formatted_messages += f"<|start_header_id|>assistant<|end_header_id|>\n\n" # Prompt for assistant
-        prompt = f"<|begin_of_text|>{formatted_messages}"
-        # I made ChatGPT write this, fallback for older transformers or tokenizers not supporting apply_chat_template
-        # I'm not sure if this is correct, but it would probably work.
-
-    print(f"Formatted prompt being sent to tokenizer:\n{prompt}")
-
-    # Tokenize the prompt
-    inputs = tokenizer(prompt, return_tensors="pt", padding=False, return_attention_mask=True).to(device)
-    input_ids = inputs["input_ids"]
-    attention_mask = inputs["attention_mask"]
-
-    # Define terminator tokens for generationn.
-    terminator_ids = []
-    if tokenizer.eos_token_id is not None:
-        terminator_ids.append(tokenizer.eos_token_id)
-    
-    # Attempt to get the ID for <|eot_id|>
-    try:
-        eot_token_id = tokenizer.convert_tokens_to_ids("<|eot_id|>")
-        if eot_token_id != tokenizer.unk_token_id and eot_token_id not in terminator_ids:
-            terminator_ids.append(eot_token_id)
-    except Exception as e:
-        print(f"Could not get token ID for <|eot_id|>: {e}")
-
-    if not terminator_ids: # Fallback if no valid terminators found
-        if tokenizer.eos_token_id is not None:
-             terminator_ids = [tokenizer.eos_token_id]
-        else:
-            print("CRITICAL WARNING: No EOS token ID found in tokenizer. Generation might not stop correctly.")
-            terminator_ids = [] # Model will rely on max_new_tokens
-
-    print(f"Using terminator IDs for generation: {terminator_ids} (tokens: {[tokenizer.decode([tid]) for tid in terminator_ids]})")
-    print(f"Using pad_token_id for generation: {tokenizer.pad_token_id} (token: {tokenizer.decode([tokenizer.pad_token_id]) if tokenizer.pad_token_id is not None else 'None'})")
-
-
-    # Generate response
     with torch.no_grad():
-        # output_ids will contain the prompt + generated response
-        output_sequences = model.generate(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            max_new_tokens=200,  
-            eos_token_id=terminator_ids, # Stop generation on these tokens
-            pad_token_id=tokenizer.pad_token_id,
-            temperature=0.7,      
-            do_sample=True,      
-            num_return_sequences=1
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=256,
+            do_sample=True,
+            temperature=0.7,
+            top_p=0.9,
+            pad_token_id=tokenizer.eos_token_id,
         )
 
-    # Decode only the generated part of the response
-    generated_ids = output_sequences[0][input_ids.shape[-1]:]
-    decoded_response = tokenizer.decode(generated_ids, skip_special_tokens=True)
-    print(f"Raw decoded generated output (after slicing, before final strip): '{decoded_response}'")
-    final_response = decoded_response.strip()
-    print(f"Cleaned final response: '{final_response}'")
-    return final_response
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return generated_text.split("<|assistant|>")[-1].strip()
 
-# get_response("What is the capital of France?", "You are a helpful assistant.")
+
+get_response("What is the capital of France?", "You are a helpful assistant.")
 
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
@@ -197,6 +136,5 @@ def main():
             previous_outputs += f"Choice: {choice} Result: {result}\n"
             print(f"Choice: {choice} Result: {result}\n")
 
-if __name__ == "__main__":
-    main()
-
+# if __name__ == "__main__":
+#     main()
