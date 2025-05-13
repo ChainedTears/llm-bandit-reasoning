@@ -6,7 +6,7 @@ from huggingface_hub import login
 login(token="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")
 
 # Specify model ID 
-model_id = "mistralai/Mistral-7B-v0.1"
+model_id = "mistralai/Mixtral-8x7B-v0.1"
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
