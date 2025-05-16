@@ -1,12 +1,15 @@
+import time
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import secrets
 from huggingface_hub import login
+import re
 
 login(token="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")
 
 # Specify model ID 
 model_id = "meta-llama/Llama-3.2-1B"
+# model_id = "Qwen/Qwen3-4B"
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
@@ -64,31 +67,40 @@ if tokenizer and tokenizer.pad_token_id is None:
 
 # Generate response function
 
-def get_response(prompt, system_prompt):
+# Add a stop sequence
+
+
+def get_response(prompt):
     if model is None or tokenizer is None:
         return "Model or tokenizer not loaded."
 
-    input_text = f"<|system|>\n{system_prompt}\n<|user|>\n{prompt}\n<|assistant|>\n"
-    inputs = tokenizer(input_text, return_tensors="pt").to(device)
-
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    # log timestamp
+    start_time = time.time()
+    print("Generating response...")
     with torch.no_grad():
         outputs = model.generate(
-            **inputs,
-            max_new_tokens=256,
-            do_sample=True,
-            temperature=0.7,
-            top_p=0.9,
-            pad_token_id=tokenizer.eos_token_id,
-        )
-
+        **inputs,
+        max_new_tokens=100,
+        do_sample=False,
+        # temperature=0.1,
+        top_p=1.0,
+        pad_token_id=tokenizer.pad_token_id,  # Use the pad_token_id we set earlier
+        eos_token_id=tokenizer.eos_token_id
+    ) 
+    # Only return *new* generated tokens
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return generated_text.split("<|assistant|>")[-1].strip()
+    print("Generation took ", time.time() - start_time, "seconds.")
+    generated_text = generated_text.split("<|assistant|>")[-1].strip()
+    generated_text = re.sub(r'###.*?###.*?###', '', generated_text, flags=re.DOTALL)
+    return generated_text
 
-
-get_response("What is the capital of France?", "You are a helpful assistant.")
+while True:
+    print(get_response(input("Enter a question: ")))
 
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
+    
     if choice == 1:
         if random_number < 30:
             return "You win"
