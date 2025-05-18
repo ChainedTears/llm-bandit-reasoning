@@ -117,12 +117,7 @@ def main():
     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
     while total < 100 or (ratio < 0.8 and total > 20):
-        prompt = f"""In a Casino with two slot machines, I will try to maximize my winnings.
-        I will output 1 or 2 based on the history of my choices and results, which are
-        {previous_outputs}
-        My single output will be either 1 or 2, and i will not use chain of thought or output anything other than 1 or 2.
-        Output: 
-        """
+        prompt = f"""You are in a Casino with two slot machines, 1 and 2. \n You will output either a 1 or a 2, based on the history of your choices and results, which are: \n {previous_outputs} \n You will give your output in this format: \n Output: <number>"""
         if previous_choice == 2:
             correct += 1
         total += 1
