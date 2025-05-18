@@ -8,8 +8,8 @@ import re
 login(token="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")
 
 # Specify model ID 
-model_id = "meta-llama/Llama-3.2-1B"
-# model_id = "Qwen/Qwen3-4B"
+# model_id = "meta-llama/Llama-3.2-1B"
+model_id = "Qwen/Qwen3-4B"
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
@@ -82,8 +82,8 @@ def get_response(prompt):
         outputs = model.generate(
         **inputs,
         max_new_tokens=100,
-        do_sample=False,
-        # temperature=0.1,
+        do_sample=True,
+        temperature=0.1,
         top_p=1.0,
         pad_token_id=tokenizer.pad_token_id,  # Use the pad_token_id we set earlier
         eos_token_id=tokenizer.eos_token_id
