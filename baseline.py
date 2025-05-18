@@ -114,20 +114,22 @@ def bandit_simulation(choice):
 # Main execution loop
 def main():
     previous_outputs = ""
-    prompt = f"""In a Casino with two slot machines, I will try to maximize my winnings.
-    I will output 1 or 2 based on the history of my choices and results, which are
-    {previous_outputs}
-    Output: 
-    """
     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
     while total < 100 or (ratio < 0.8 and total > 20):
+        prompt = f"""In a Casino with two slot machines, I will try to maximize my winnings.
+        I will output 1 or 2 based on the history of my choices and results, which are
+        {previous_outputs}
+        My single output will be either 1 or 2.
+        Output: 
+        """
         if previous_choice == 2:
             correct += 1
         total += 1
         ratio = correct / total
         print(f"------------- Iteration {total} -------------")
         print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
+        
         if total == 0:
             choice = 1
             previous_choice = 1
