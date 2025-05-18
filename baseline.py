@@ -75,35 +75,25 @@ def get_response(prompt):
         return "Model or tokenizer not loaded."
 
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    input_ids = inputs["input_ids"]
-    attention_mask = inputs["attention_mask"]
-
-    # Log timestamp
+    # log timestamp
     start_time = time.time()
     print("Generating response...")
-
-    generated = input_ids
-    stop_token = "\n"
-    stop_token_id = tokenizer.encode(stop_token, add_special_tokens=False)[0]
-
-    model.eval()
     with torch.no_grad():
-        for _ in range(100):  # max_new_tokens
-            outputs = model(input_ids=generated, attention_mask=attention_mask)
-            next_token_logits = outputs.logits[:, -1, :]
-            next_token = torch.argmax(next_token_logits, dim=-1).unsqueeze(0)
-            generated = torch.cat((generated, next_token), dim=1)
-
-            # Check if the last generated token is a stop token
-            if next_token.item() == stop_token_id:
-                break
-
-    generated_text = tokenizer.decode(generated[0], skip_special_tokens=True)
-    generated_text = generated_text[len(tokenizer.decode(input_ids[0], skip_special_tokens=True)):]
-    generated_text = generated_text.strip()
+        outputs = model.generate(
+        **inputs,
+        max_new_tokens=100,
+        do_sample=True,
+        temperature=0.1,
+        top_p=1.0,
+        pad_token_id=tokenizer.pad_token_id,  # Use the pad_token_id we set earlier
+        eos_token_id=tokenizer.eos_token_id
+    ) 
+    # Only return *new* generated tokens
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print("Generation took ", time.time() - start_time, "seconds.")
+    generated_text = generated_text.split("<|assistant|>")[-1].strip()
+    generated_text = re.sub(r'###.*?###.*?###', '', generated_text, flags=re.DOTALL)
     return generated_text
-
 
 
 def bandit_simulation(choice):
