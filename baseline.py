@@ -51,7 +51,7 @@ if tokenizer:
             cache_dir=".",
             # trust_remote_code=True,
         ).to(device)
-        model.eval()  # Set model to evaluation mode
+        # model.eval()  # Set model to evaluation mode
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -95,49 +95,48 @@ def get_response(prompt):
     generated_text = re.sub(r'###.*?###.*?###', '', generated_text, flags=re.DOTALL)
     return generated_text
 
-while True:
-    print(get_response(input("Enter a question: ")))
 
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
     
     if choice == 1:
         if random_number < 30:
-            return "You win"
+            return "won"
         else:
-            return "You lose"
+            return "lost"
     if choice == 2:
         if random_number < 65:
-            return "You win"
+            return "won"
         else: 
-            return "You lose"
+            return "lost"
 
 
 # Main execution loop
 def main():
-    prompt = """You are in a Casino with 2 slot machines. Your goal is to maximize your winnings.
-    After each play, I will tell you the result. Based on the history, choose the next slot machine to play (1 or 2).
-    Respond with ONLY the number of your next choice."""
-    
     previous_outputs = ""
+    prompt = f"""In a Casino with two slot machines, I will try to maximize my winnings.
+    I will output 1 or 2 based on the history of my choices and results, which are
+    {previous_outputs}
+    Output: 
+    """
     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
-    while not (total < 100 and ratio > 0.8):
+    while total < 100 or (ratio < 0.8 and total > 20):
         if previous_choice == 2:
             correct += 1
         total += 1
         ratio = correct / total
-        print(f"Iteration {total}")
+        print(f"------------- Iteration {total} -------------")
         if total == 0:
             choice = 1
             result = bandit_simulation(choice)
-            previous_outputs += f"Choice: {choice} Result: {result}\n"
-            print(f"Choice: {choice} Result: {result}\n")
+            previous_outputs += f"Slot Machine {choice} {result}\n"
+            print(previous_outputs)
         else:
             ai_response = get_response(previous_outputs, prompt)
             
             try:
-                choice = int(ai_response.strip())
+                choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
                 if choice not in [1, 2]:
                     print(f"Invalid choice '{choice}'")
                     return
@@ -145,8 +144,8 @@ def main():
                 print(f"Invalid response '{ai_response}'")
                 return
             result = bandit_simulation(choice)
-            previous_outputs += f"Choice: {choice} Result: {result}\n"
-            print(f"Choice: {choice} Result: {result}\n")
+            previous_outputs += f"Slot Machine {choice} {result}\n"
+            print(previous_outputs)
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
