@@ -127,8 +127,10 @@ def main():
         total += 1
         ratio = correct / total
         print(f"------------- Iteration {total} -------------")
+        print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
         if total == 0:
             choice = 1
+            previous_choice = 1
             result = bandit_simulation(choice)
             previous_outputs += f"Slot Machine {choice} {result}\n"
             print(previous_outputs)
@@ -137,6 +139,7 @@ def main():
             
             try:
                 choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
+                previous_choice = choice
                 if choice not in [1, 2]:
                     print(f"Invalid choice '{choice}'")
                     return
