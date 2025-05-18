@@ -133,7 +133,7 @@ def main():
             previous_outputs += f"Slot Machine {choice} {result}\n"
             print(previous_outputs)
         else:
-            ai_response = get_response(previous_outputs, prompt)
+            ai_response = get_response(prompt)
             
             try:
                 choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
