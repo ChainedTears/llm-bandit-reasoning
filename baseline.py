@@ -85,6 +85,7 @@ def get_response(prompt):
         do_sample=True,
         temperature=0.1,
         top_p=1.0,
+        stop = ["\n"],
         pad_token_id=tokenizer.pad_token_id,  # Use the pad_token_id we set earlier
         eos_token_id=tokenizer.eos_token_id
     ) 
@@ -120,11 +121,14 @@ def main():
         prompt = f"""I am in a casino with two slot machines, 1 and 2.
 I will output either a 1 or a 2, based on the history of my choices and results, which are:
 {previous_outputs}
+I am in a casino with two slot machines, 1 and 2.
+I will output either a 1 or a 2, based on the history of my choices and results, which are:
+{previous_outputs}
 I will give my output in this format:
 Output: <number>
-I will only write the output and nothing else. I will not explain. I will stop immediately after writing the output.
 
-Output:"""
+Output:
+"""
         if previous_choice == 2:
             correct += 1
         total += 1
