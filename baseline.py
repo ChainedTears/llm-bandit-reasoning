@@ -138,7 +138,9 @@ def main():
             ai_response = get_response(prompt)
             
             try:
+                print(ai_response)
                 choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
+                print(choice)
                 previous_choice = choice
                 if choice not in [1, 2]:
                     print(f"Invalid choice '{choice}'")
