@@ -149,11 +149,12 @@ Output:
             choice = int(match.group(1))
         else:
             print(f"Could not parse choice from response: {ai_response}")
-            return
+            choice = 1
+    
 
         if choice not in [1, 2]:
             print(f"Invalid choice: {choice}")
-            return
+            choice = 1
 
         result = bandit_simulation(choice)
         if result == "won":
