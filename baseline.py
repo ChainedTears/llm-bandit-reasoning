@@ -120,7 +120,7 @@ def main():
         prompt = f"""In a Casino with two slot machines, I will try to maximize my winnings.
         I will output 1 or 2 based on the history of my choices and results, which are
         {previous_outputs}
-        My single output will be either 1 or 2.
+        My single output will be either 1 or 2, and i will not use chain of thought or output anything other than 1 or 2.
         Output: 
         """
         if previous_choice == 2:
