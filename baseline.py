@@ -81,7 +81,7 @@ def get_response(prompt):
     with torch.no_grad():
         outputs = model.generate(
         **inputs,
-        max_new_tokens=200,
+        max_new_tokens=100,
         do_sample=True,
         temperature=0.1,
         top_p=1.0,
@@ -117,7 +117,14 @@ def main():
     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
     while total < 100 or (ratio < 0.8 and total > 20):
-        prompt = f"""You are in a Casino with two slot machines, 1 and 2. \n You will output either a 1 or a 2, based on the history of your choices and results, which are: \n {previous_outputs} \n You will give your output in this format: \n Output: <number>"""
+        prompt = f"""I am in a casino with two slot machines, 1 and 2.
+I will output either a 1 or a 2, based on the history of my choices and results, which are:
+{previous_outputs}
+I will give my output in this format:
+Output: <number>
+I will only write the output and nothing else. I will not explain. I will stop immediately after writing the output.
+
+Output:"""
         if previous_choice == 2:
             correct += 1
         total += 1
