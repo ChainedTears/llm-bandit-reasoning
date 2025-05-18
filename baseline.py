@@ -143,21 +143,28 @@ Output:
             print(previous_outputs)
         else:
             ai_response = get_response(prompt)
-            
-            try:
-                print(ai_response)
-                choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
-                print(choice)
-                previous_choice = choice
-                if choice not in [1, 2]:
-                    print(f"Invalid choice '{choice}'")
-                    return
-            except ValueError:
-                print(f"Invalid response '{ai_response}'")
-                return
-            result = bandit_simulation(choice)
-            previous_outputs += f"Slot Machine {choice} {result}\n"
-            print(previous_outputs)
+            print(ai_response)
+            match = re.search(r'Output:\s*(\d+)', ai_response)
+        if match:
+            choice = int(match.group(1))
+        else:
+            print(f"Could not parse choice from response: {ai_response}")
+            return
+
+        if choice not in [1, 2]:
+            print(f"Invalid choice: {choice}")
+            return
+
+        result = bandit_simulation(choice)
+        if result == "won":
+            correct += 1
+
+        total += 1
+        ratio = correct / total
+
+        previous_outputs += f"Slot Machine {choice} {result}\n"
+        print(previous_outputs)
+
 
 if __name__ == "__main__":
     main()
