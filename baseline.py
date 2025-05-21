@@ -75,7 +75,7 @@ def get_response(prompt):
         return "Model or tokenizer not loaded."
 
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    inputs_id_length = inputs.input_ids.shape[1]
+    inputs_ids_length = inputs.input_ids.shape[1]
     # log timestamp
     start_time = time.time()
     print("Generating response...")
