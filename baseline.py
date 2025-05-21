@@ -81,7 +81,7 @@ def get_response(prompt):
     print("Generating response...")
     with torch.no_grad():
         outputs = model.generate(
-        **inputs.input_ids,
+        **input_ids=inputs.input_ids,
         attention_mask = inputs.attention_mask,
         max_new_tokens=10,
         do_sample=True,
