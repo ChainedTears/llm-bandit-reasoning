@@ -75,12 +75,14 @@ def get_response(prompt):
         return "Model or tokenizer not loaded."
 
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    inputs_id_length = inputs.input_ids.shape[1]
     # log timestamp
     start_time = time.time()
     print("Generating response...")
     with torch.no_grad():
         outputs = model.generate(
-        **inputs,
+        **inputs.input_ids,
+        attention_mask = inputs.attention_mask,
         max_new_tokens=10,
         do_sample=True,
         temperature=0.1,
@@ -89,10 +91,8 @@ def get_response(prompt):
         eos_token_id=tokenizer.eos_token_id
     ) 
     # Only return *new* generated tokens
-    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    print("Generation took ", time.time() - start_time, "seconds.")
-    generated_text = generated_text.split("<|assistant|>")[-1].strip()
-    generated_text = re.sub(r'###.*?###.*?###', '', generated_text, flags=re.DOTALL)
+    newly_generated_tokens = outputs[0][input_ids_length:]
+    generated_text = tokenizer.decode(newly_generated_tokens, skip_special_tokens=True).strip()
     return generated_text
 
 
