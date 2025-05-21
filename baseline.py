@@ -91,7 +91,7 @@ def get_response(prompt):
         eos_token_id=tokenizer.eos_token_id
     ) 
     # Only return *new* generated tokens
-    newly_generated_tokens = outputs[0][input_ids_length:]
+    newly_generated_tokens = outputs[0][inputs_ids_length:]
     generated_text = tokenizer.decode(newly_generated_tokens, skip_special_tokens=True).strip()
     return generated_text
 
