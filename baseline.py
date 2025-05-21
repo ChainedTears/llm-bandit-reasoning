@@ -114,7 +114,7 @@ def bandit_simulation(choice):
 # Main execution loop
 def main():
     previous_outputs = ""
-    correct, ratio, total, previous_choice = 0, 0.0, 0, 1
+    correct, ratio, total, previous_choice = 0, 0.0, 0, choice
     # Run for 10 iterations
     while total < 100 or (ratio < 0.8 and total > 20):
         prompt = f"""I am in a casino with two slot machines, 1 and 2.
