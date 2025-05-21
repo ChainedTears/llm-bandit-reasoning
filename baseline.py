@@ -22,7 +22,7 @@ print(f"Using device: {device}")
 
 # Load tokenizer
 try:
-    tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=".")
+    tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=".", trust_remote_code = True)
     print("Tokenizer loaded successfully.")
 except Exception as e:
     print(f"Error loading tokenizer: {e}")
@@ -81,10 +81,10 @@ def get_response(prompt):
     with torch.no_grad():
         outputs = model.generate(
         **inputs,
-        max_new_tokens=100,
+        max_new_tokens=10,
         do_sample=True,
         temperature=0.1,
-        top_p=1.0,
+        top_p=0.9,
         pad_token_id=tokenizer.pad_token_id,  # Use the pad_token_id we set earlier
         eos_token_id=tokenizer.eos_token_id
     ) 
