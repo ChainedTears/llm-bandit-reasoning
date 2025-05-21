@@ -49,7 +49,7 @@ if tokenizer:
             model_id,
             torch_dtype=dtype,
             cache_dir=".",
-            # trust_remote_code=True,
+            trust_remote_code=True,
         ).to(device)
         # model.eval()  # Set model to evaluation mode
         print("Model loaded successfully.")
