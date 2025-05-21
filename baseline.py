@@ -114,33 +114,36 @@ def bandit_simulation(choice):
 # Main execution loop
 def main():
     previous_outputs = ""
-    correct, ratio, total, previous_choice = 0, 0.0, 0, choice
+    correct, ratio, total, previous_choice = 0, 0.0, 0, 1
     # Run for 10 iterations
     while total < 100 or (ratio < 0.8 and total > 20):
-        prompt = f"""I am in a casino with two slot machines, 1 and 2.
-I will output either a 1 or a 2, based on the history of my choices and results, which are:
-{previous_outputs}
-I am in a casino with two slot machines, 1 and 2.
-I will output either a 1 or a 2, based on the history of my choices and results, which are:
-{previous_outputs}
-I will give my output in this format:
-Output: <number>
+        prompt = f"""You are an AI playing a slot machine game. 
+        Choose between Slot Machine 1 and Slot Machine 2. 
+        Your goal is to pick the machine that wins more.
+        History of your choices and results:
+        {previous_outputs if previous_outputs else "There is no history yet."}
+        Respond with 'Output: 1' or 'Output: 2'
 
-Output:
+        Output:
 """
-        if previous_choice == 2:
-            correct += 1
-        total += 1
-        ratio = correct / total
-        print(f"------------- Iteration {total} -------------")
-        print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
-        
         if total == 0:
             choice = 1
-            previous_choice = 1
             result = bandit_simulation(choice)
-            previous_outputs += f"Slot Machine {choice} {result}\n"
+            total += 1
+            if choice == 2:
+                correct += 1
+            if total > 0:
+                ratio = correct / total
+            else:
+                ratio = 0.0    
+                
+            print(f"------------- Iteration {total} -------------")
+            print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
+
+            previous_choice = choice
+            previous_outputs += f"Slot Machine {choice} {result} \n"
             print(previous_outputs)
+        
         else:
             ai_response = get_response(prompt)
             print(ai_response)
@@ -157,15 +160,23 @@ Output:
                 choice = 1
 
             result = bandit_simulation(choice)
-            if result == "won":
-                correct += 1
-
             total += 1
-            ratio = correct / total
+            if choice == 2:
+                correct += 1
+            if total > 0:
+                ratio = correct / total
+            else:
+                ratio = 0.0
+           
 
+            print(f"------------- Iteration {total} -------------")
+            print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
+            
+            
             previous_outputs += f"Slot Machine {choice} {result}\n"
+            previous_choice = choice
             print(previous_outputs)
-
+        
 
 if __name__ == "__main__":
     main()
