@@ -51,7 +51,7 @@ if tokenizer:
             cache_dir=".",
             trust_remote_code=True,
         ).to(device)
-        # model.eval()  # Set model to evaluation mode
+        model.eval()  # Set model to evaluation mode
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error loading model: {e}")
