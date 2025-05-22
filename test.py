@@ -213,7 +213,7 @@ History:
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
         ai_response_raw = get_response(prompt)
-        print(f"Raw AI Response: '{ai_response_raw}'")
+        print(f"Raw AI Response: {ai_response_raw}")
 
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
