@@ -19,7 +19,7 @@ model_dict = {
 receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
 while receive not in model_dict:
     receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
-model_id = model_dict[recieve]
+model_id = model_dict[receive]
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
