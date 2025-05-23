@@ -10,11 +10,11 @@ login(token="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")
 # Specify model ID 
 # model_id = "meta-llama/Llama-3.2-1B"
 model_dict = {
-    1: "Qwen/Qwen3-4B",
-    2: "Qwen/Qwen3-8B",
-    3: "meta-llama/Llama-3.1-8B",
-    4: "mistralai/Mistral-7B-v0.1",
-    5: "microsoft/phi-2"
+    '1': "Qwen/Qwen3-4B",
+    '2': "Qwen/Qwen3-8B",
+    '3': "meta-llama/Llama-3.1-8B",
+    '4': "mistralai/Mistral-7B-v0.1",
+    '5': "microsoft/phi-2"
 }
 receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
 while receive not in model_dict:
