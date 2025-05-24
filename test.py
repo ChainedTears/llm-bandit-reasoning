@@ -9,7 +9,17 @@ login(token="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")
 
 # Specify model ID 
 # model_id = "meta-llama/Llama-3.2-1B"
-model_id = "Qwen/Qwen3-4B"
+model_dict = {
+    '1': "Qwen/Qwen3-4B",
+    '2': "Qwen/Qwen3-8B",
+    '3': "meta-llama/Llama-3.1-8B",
+    '4': "mistralai/Mistral-7B-v0.1",
+    '5': "microsoft/phi-2"
+}
+receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+while receive not in model_dict:
+    receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+model_id = model_dict[receive]
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
 if torch.backends.mps.is_available():
@@ -93,8 +103,8 @@ def get_response(prompt_text):
             input_ids=inputs.input_ids,
             attention_mask=inputs.attention_mask, # Pass attention_mask
             max_new_tokens=5,      # CRITICAL: Keep low for single digit output
-            do_sample=False,       # Greedy decoding; set to True with low temp if output is too repetitive
-            # temperature=0.1,     # Use if do_sample=True
+            do_sample=True,       # Greedy decoding; set to True with low temp if output is too repetitive
+            temperature=0.7,     # Use if do_sample=True
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
@@ -213,7 +223,7 @@ History:
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
         ai_response_raw = get_response(prompt)
-        print(f"Raw AI Response: '{ai_response_raw}'")
+        print(f"Raw AI Response: {ai_response_raw}")
 
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
