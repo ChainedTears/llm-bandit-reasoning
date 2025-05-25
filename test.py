@@ -192,11 +192,29 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
-Based on the history of wins and losses, decide which machine to play next.
-Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
+        prompt = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
 
-Example 1:
+Follow these decision rules strictly:
+
+1.  **Analyze History:**
+    * For Slot Machine 1: Count its total plays (P1) and total wins (W1) from the 'History' section.
+    * For Slot Machine 2: Count its total plays (P2) and total wins (W2) from the 'History' section.
+
+2.  **Decision Logic:**
+    a.  If P1 > 0 and P2 = 0 (Only Machine 1 has been played): Choose Machine 1.
+    b.  If P2 > 0 and P1 = 0 (Only Machine 2 has been played): Choose Machine 2.
+    c.  If P1 = 0 and P2 = 0 (Neither machine has been played): Choose Machine 1.
+    d.  If P1 > 0 and P2 > 0 (Both machines have been played):
+        i.  Calculate win rate for Machine 1 (WR1 = W1 / P1).
+        ii. Calculate win rate for Machine 2 (WR2 = W2 / P2).
+        iii. If WR1 > WR2, choose Machine 1.
+        iv. If WR2 > WR1, choose Machine 2.
+        v.  If WR1 = WR2 (win rates are identical, e.g., both 50%, or both 0% from plays), choose Machine 1.
+
+**Output Format:**
+Respond with ONLY the single digit '1' (for Slot Machine 1) or '2' (for Slot Machine 2). Do NOT include any other words, symbols, explanations, or formatting.
+
+**Example 1 (Clear Winner):**
 History:
 Slot Machine 1 lost
 Slot Machine 2 won
@@ -206,7 +224,7 @@ Slot Machine 2 lost
 Slot Machine 1 lost
 Your choice (1 or 2): 2
 
-Example 2:
+**Example 2 (Clear Winner):**
 History:
 Slot Machine 1 won
 Slot Machine 1 won
@@ -216,9 +234,27 @@ Slot Machine 2 won
 Slot Machine 1 won
 Your choice (1 or 2): 1
 
-Current situation:
+**Example 3 (Identical Win Rates when Both Played):**
 History:
-{previous_outputs}Your choice (1 or 2):""" # The final line cues the model
+Slot Machine 1 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 2 lost
+Your choice (1 or 2): 1
+
+**Example 4 (Only Machine 1 Played in History):**
+History:
+Slot Machine 1 won
+Slot Machine 1 lost
+Slot Machine 1 won
+Your choice (1 or 2): 1
+
+**Example 5 (Only Machine 2 Played in History):**
+History:
+Slot Machine 2 lost
+Slot Machine 2 won
+Your choice (1 or 2): 2
+"""
 
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
