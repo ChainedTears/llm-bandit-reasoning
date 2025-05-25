@@ -192,30 +192,11 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        # This is the text block I provided in the last response
-        new_prompt_instructions_and_examples_block_text = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
+        prompt = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
+Based on the history of wins and losses, decide which machine to play next.
+Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
 
-Follow these decision rules strictly:
-
-1.  **Analyze History:**
-    * For Slot Machine 1: Count its total plays (P1) and total wins (W1) from the 'History' section.
-    * For Slot Machine 2: Count its total plays (P2) and total wins (W2) from the 'History' section.
-
-2.  **Decision Logic:**
-    a.  If P1 > 0 and P2 = 0 (Only Machine 1 has been played): Choose Machine 1.
-    b.  If P2 > 0 and P1 = 0 (Only Machine 2 has been played): Choose Machine 2.
-    c.  If P1 = 0 and P2 = 0 (Neither machine has been played): Choose Machine 1.
-    d.  If P1 > 0 and P2 > 0 (Both machines have been played):
-        i.  Calculate win rate for Machine 1 (WR1 = W1 / P1).
-        ii. Calculate win rate for Machine 2 (WR2 = W2 / P2).
-        iii. If WR1 > WR2, choose Machine 1.
-        iv. If WR2 > WR1, choose Machine 2.
-        v.  If WR1 = WR2 (win rates are identical, e.g., both 50%, or both 0% from plays), choose Machine 1.
-
-**Output Format:**
-Respond with ONLY the single digit '1' (for Slot Machine 1) or '2' (for Slot Machine 2). Do NOT include any other words, symbols, explanations, or formatting.
-
-**Example 1 (Clear Winner):**
+Example 1:
 History:
 Slot Machine 1 lost
 Slot Machine 2 won
@@ -225,7 +206,7 @@ Slot Machine 2 lost
 Slot Machine 1 lost
 Your choice (1 or 2): 2
 
-**Example 2 (Clear Winner):**
+Example 2:
 History:
 Slot Machine 1 won
 Slot Machine 1 won
@@ -235,35 +216,9 @@ Slot Machine 2 won
 Slot Machine 1 won
 Your choice (1 or 2): 1
 
-**Example 3 (Identical Win Rates when Both Played):**
-History:
-Slot Machine 1 won
-Slot Machine 1 lost
-Slot Machine 2 won
-Slot Machine 2 lost
-Your choice (1 or 2): 1
-
-**Example 4 (Only Machine 1 Played in History):**
-History:
-Slot Machine 1 won
-Slot Machine 1 lost
-Slot Machine 1 won
-Your choice (1 or 2): 1
-
-**Example 5 (Only Machine 2 Played in History):**
-History:
-Slot Machine 2 lost
-Slot Machine 2 won
-Your choice (1 or 2): 2
-"""
-
-# Then, in your main() function, the prompt is assembled like this:
-# previous_outputs = "..." # This is populated by your simulation loop
-
-prompt = f"""{new_prompt_instructions_and_examples_block_text}
 Current situation:
 History:
-{previous_outputs}Your choice (1 or 2):"""
+{previous_outputs}Your choice (1 or 2):""" # The final line cues the model
 
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
@@ -289,10 +244,13 @@ History:
 
 
         if ai_choice not in [1, 2]:
-            print(f"AI did not output a clear 1 or 2. Raw: '{ai_response_raw}'. Defaulting to previous AI choice: {previous_ai_choice}")
-            ai_choice = previous_ai_choice
-            if ai_choice not in [1,2]: # Ensure previous_ai_choice is valid, else default to 1
-                ai_choice = 1
+            print(f"AI did not output a clear 1 or 2. Asking again...")
+            while ai_choice not in [1, 2]:
+                ai_response_raw = get_response(prompt)
+                match = re.match(r'^\s*([12])\b', ai_response_raw)
+                if match:
+                    ai_choice = int(match.group(1))
+
 
 
         print(f"AI chose: Machine {ai_choice}")
