@@ -193,7 +193,7 @@ def main():
 
         # Construct the prompt: Strong instructions + Few-shot examples
         # This is the text block I provided in the last response
-        prompt = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
+        new_prompt_instructions_and_examples_block_text = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
 
 Follow these decision rules strictly:
 
