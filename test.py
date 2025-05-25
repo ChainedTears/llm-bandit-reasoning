@@ -192,6 +192,7 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
+        # This is the text block I provided in the last response
         prompt = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
 
 Follow these decision rules strictly:
@@ -255,6 +256,14 @@ Slot Machine 2 lost
 Slot Machine 2 won
 Your choice (1 or 2): 2
 """
+
+# Then, in your main() function, the prompt is assembled like this:
+# previous_outputs = "..." # This is populated by your simulation loop
+
+prompt = f"""{new_prompt_instructions_and_examples_block_text}
+Current situation:
+History:
+{previous_outputs}Your choice (1 or 2):"""
 
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
