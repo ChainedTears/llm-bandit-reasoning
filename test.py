@@ -191,12 +191,30 @@ def main():
         iteration_num = i + 1
         print(f"------------- Iteration {iteration_num} -------------")
 
-        # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
-Based on the history of wins and losses, decide which machine to play next.
-Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
+        # Define the static part of the prompt (instructions and examples)
+        new_prompt_instructions_and_examples_block_text = """You are a precise and rule-following decision-making agent. Your sole task is to choose to play Slot Machine 1 or Slot Machine 2 next, based on the provided history of wins and losses.
 
-Example 1:
+Follow these decision rules strictly:
+
+1.  **Analyze History:**
+    * For Slot Machine 1: Count its total plays (P1) and total wins (W1) from the 'History' section.
+    * For Slot Machine 2: Count its total plays (P2) and total wins (W2) from the 'History' section.
+
+2.  **Decision Logic:**
+    a.  If P1 > 0 and P2 = 0 (Only Machine 1 has been played): Choose Machine 1.
+    b.  If P2 > 0 and P1 = 0 (Only Machine 2 has been played): Choose Machine 2.
+    c.  If P1 = 0 and P2 = 0 (Neither machine has been played): Choose Machine 1.
+    d.  If P1 > 0 and P2 > 0 (Both machines have been played):
+        i.  Calculate win rate for Machine 1 (WR1 = W1 / P1).
+        ii. Calculate win rate for Machine 2 (WR2 = W2 / P2).
+        iii. If WR1 > WR2, choose Machine 1.
+        iv. If WR2 > WR1, choose Machine 2.
+        v.  If WR1 = WR2 (win rates are identical, e.g., both 50%, or both 0% from plays), choose Machine 1.
+
+**Output Format:**
+Respond with ONLY the single digit '1' (for Slot Machine 1) or '2' (for Slot Machine 2). Do NOT include any other words, symbols, explanations, or formatting.
+
+**Example 1 (Clear Winner):**
 History:
 Slot Machine 1 lost
 Slot Machine 2 won
@@ -206,7 +224,7 @@ Slot Machine 2 lost
 Slot Machine 1 lost
 Your choice (1 or 2): 2
 
-Example 2:
+**Example 2 (Clear Winner):**
 History:
 Slot Machine 1 won
 Slot Machine 1 won
@@ -216,9 +234,35 @@ Slot Machine 2 won
 Slot Machine 1 won
 Your choice (1 or 2): 1
 
+**Example 3 (Identical Win Rates when Both Played):**
+History:
+Slot Machine 1 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 2 lost
+Your choice (1 or 2): 1
+
+**Example 4 (Only Machine 1 Played in History):**
+History:
+Slot Machine 1 won
+Slot Machine 1 lost
+Slot Machine 1 won
+Your choice (1 or 2): 1
+
+**Example 5 (Only Machine 2 Played in History):**
+History:
+Slot Machine 2 lost
+Slot Machine 2 won
+Your choice (1 or 2): 2
+"""  # This is the end of the multi-line string assignment.
+
+        # Now, assemble the full prompt.
+        # Ensure this 'prompt =' line has the same indentation level as the
+        # 'new_prompt_instructions_and_examples_block_text =' line above it.
+        prompt = f"""{new_prompt_instructions_and_examples_block_text}
 Current situation:
 History:
-{previous_outputs}Your choice (1 or 2):""" # The final line cues the model
+{previous_outputs}Your choice (1 or 2):"""
 
         # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
@@ -240,18 +284,13 @@ History:
                     ai_choice = int(match_fallback.group(1))
                     print(f"Used fallback regex to find choice: {ai_choice}")
                 except ValueError:
-                     print(f"AI response parsing error (ValueError) on fallback from '{ai_response_raw}'.")
-
+                    print(f"AI response parsing error (ValueError) on fallback from '{ai_response_raw}'.")
 
         if ai_choice not in [1, 2]:
-            print(f"AI did not output a clear 1 or 2. Asking again...")
-            while ai_choice not in [1, 2]:
-                ai_response_raw = get_response(prompt)
-                match = re.match(r'^\s*([12])\b', ai_response_raw)
-                if match:
-                    ai_choice = int(match.group(1))
-
-
+            print(f"AI did not output a clear 1 or 2. Raw: '{ai_response_raw}'. Defaulting to previous AI choice: {previous_ai_choice}")
+            ai_choice = previous_ai_choice
+            if ai_choice not in [1,2]: # Ensure previous_ai_choice is valid, else default to 1
+                ai_choice = 1
 
         print(f"AI chose: Machine {ai_choice}")
 
@@ -272,7 +311,6 @@ History:
         # For brevity, don't print full history each time
         # print(f"Updated History (last 5 lines):\n{''.join(previous_outputs.splitlines(True)[-5:])}")
 
-
     print("\n--- Simulation Complete ---")
     final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
     print(f"Final AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {final_ratio:.2f}")
@@ -281,54 +319,3 @@ History:
 
 if __name__ == "__main__":
     main()
-
-# Main execution loop
-# def main():
-#     previous_outputs = ""
-#     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
-#     # Run for 10 iterations
-#     while total < 100 or (ratio < 0.8 and total > 20):
-#         prompt = f"""I am in a casino with two slot machines, 1 and 2.
-# I will output either a 1 or a 2, based on the history of my choices and results, which are:
-# {previous_outputs}
-# I am in a casino with two slot machines, 1 and 2.
-# I will output either a 1 or a 2, based on the history of my choices and results, which are:
-# {previous_outputs}
-# I will give my output in this format:
-# Output: <number>
-
-# Output:
-# """
-#         if previous_choice == 2:
-#             correct += 1
-#         total += 1
-#         ratio = correct / total
-#         print(f"------------- Iteration {total} -------------")
-#         print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
-        
-#         if total == 0:
-#             choice = 1
-#             previous_choice = 1
-#             result = bandit_simulation(choice)
-#             previous_outputs += f"Slot Machine {choice} {result}\n"
-#             print(previous_outputs)
-#         else:
-#             ai_response = get_response(prompt)
-            
-#             try:
-#                 print(ai_response)
-#                 choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
-#                 print(choice)
-#                 previous_choice = choice
-#                 if choice not in [1, 2]:
-#                     print(f"Invalid choice '{choice}'")
-#                     return
-#             except ValueError:
-#                 print(f"Invalid response '{ai_response}'")
-#                 return
-#             result = bandit_simulation(choice)
-#             previous_outputs += f"Slot Machine {choice} {result}\n"
-#             print(previous_outputs)
-
-# if __name__ == "__main__":
-#     main()
