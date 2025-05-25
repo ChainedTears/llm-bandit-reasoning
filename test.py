@@ -13,12 +13,14 @@ model_dict = {
     '1': "Qwen/Qwen3-4B",
     '2': "Qwen/Qwen3-8B",
     '3': "meta-llama/Llama-3.1-8B",
-    '4': "mistralai/Mistral-7B-v0.1",
-    '5': "microsoft/phi-2"
+    '4': "deepseek-ai/DeepSeek-R1",
+    '5': "microsoft/phi-2",
+    '6': "google/gemma-3-12b-it",
+    '7': "openai/whisper-large-v3"
 }
-receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+receive = input("Please select the model (using a number from 1-7): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Deepseek R1 \n (5) Phi 2 \n (6) Gemma 3-12B \n (7) Whisper V3 \n Select here: ")
 while receive not in model_dict:
-    receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+    receive = input("Please select the model (using a number from 1-7): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Deepseek R1 \n (5) Phi 2 \n (6) Gemma 3-12B \n (7) Whisper V3 \n Select here: ")
 model_id = model_dict[receive]
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
