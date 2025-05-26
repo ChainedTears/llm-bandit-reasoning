@@ -190,7 +190,8 @@ def main():
 
     max_iterations = 25 # Number of decisions the AI will make
     iteration_results = []
-    for i in range(500):
+    for j in range(500):
+        print(f"------------- Iteration {j} -------------")
         for i in range(max_iterations):
             iteration_num = i + 1
             print(f"------------- Iteration {iteration_num} -------------")
