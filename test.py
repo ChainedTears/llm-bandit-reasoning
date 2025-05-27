@@ -272,6 +272,7 @@ Your choice (1 or 2):""" # The final line cues the model
         current_choice_str = f"Slot Machine {ai_choice} {result}\n"
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
+        global correct_counter
         correct_counter += 1 if result == "won" else 0
 
         print(f"Outcome: Machine {ai_choice} {result}.")
