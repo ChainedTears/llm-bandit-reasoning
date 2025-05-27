@@ -281,11 +281,10 @@ Your choice (1 or 2):""" # The final line cues the model
     
     final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
     global_history.append(final_ratio)
+    print("--------------------------------")
     print(f"Final ratio: {final_ratio:.2f}")
             # For brevity, don't print full history each time
             # print(f"Updated History (last 5 lines):\n{''.join(previous_outputs.splitlines(True)[-5:])}")
-    print(iteration_results)
-    print(f"Average ratio: {sum(iteration_results) / len(iteration_results):.2f}")
 
 if __name__ == "__main__":
     for i in range(500):
