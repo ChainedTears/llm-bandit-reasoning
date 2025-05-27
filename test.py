@@ -13,9 +13,12 @@ model_dict = {
     '1': "Qwen/Qwen3-4B",
     '2': "Qwen/Qwen3-8B",
     '3': "meta-llama/Llama-3.1-8B",
-    '4': "mistralai/Mistral-7B-v0.1",
-    '5': "microsoft/phi-2"
+    '4': "deepseek-ai/DeepSeek-R1",
+    '5': "microsoft/phi-2",
+    '6': "google/gemma-3-12b-it",
+    '7': "openai/whisper-large-v3"
 }
+
 receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
 while receive not in model_dict:
     receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
@@ -186,95 +189,98 @@ def main():
     print(previous_outputs)
 
     max_iterations = 25 # Number of decisions the AI will make
+    iteration_results = []
+    for j in range(500):
+        print(f"------------- Iteration {j} -------------")
+        for i in range(max_iterations):
+            iteration_num = i + 1
+            print(f"------------- Iteration {iteration_num} -------------")
 
-    for i in range(max_iterations):
-        iteration_num = i + 1
-        print(f"------------- Iteration {iteration_num} -------------")
+            # Construct the prompt: Strong instructions + Few-shot examples
+            prompt = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
+    Based on the history of wins and losses, decide which machine to play next.
+    Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
 
-        # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
-Based on the history of wins and losses, decide which machine to play next.
-Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
+    Example 1:
+    History:
+    Slot Machine 1 lost
+    Slot Machine 2 won
+    Slot Machine 2 won
+    Slot Machine 1 lost
+    Slot Machine 2 lost
+    Slot Machine 1 lost
+    Your choice (1 or 2): 2
 
-Example 1:
-History:
-Slot Machine 1 lost
-Slot Machine 2 won
-Slot Machine 2 won
-Slot Machine 1 lost
-Slot Machine 2 lost
-Slot Machine 1 lost
-Your choice (1 or 2): 2
+    Example 2:
+    History:
+    Slot Machine 1 won
+    Slot Machine 1 won
+    Slot Machine 2 lost
+    Slot Machine 1 lost
+    Slot Machine 2 won
+    Slot Machine 1 won
+    Your choice (1 or 2): 1
 
-Example 2:
-History:
-Slot Machine 1 won
-Slot Machine 1 won
-Slot Machine 2 lost
-Slot Machine 1 lost
-Slot Machine 2 won
-Slot Machine 1 won
-Your choice (1 or 2): 1
+    Current situation:
+    History:
+    {previous_outputs}Your choice (1 or 2):""" # The final line cues the model
 
-Current situation:
-History:
-{previous_outputs}Your choice (1 or 2):""" # The final line cues the model
+            # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
 
-        # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
+            ai_response_raw = get_response(prompt)
+            print(f"Raw AI Response: {ai_response_raw}")
 
-        ai_response_raw = get_response(prompt)
-        print(f"Raw AI Response: {ai_response_raw}")
-
-        ai_choice = None
-        # Stricter parsing: expect '1' or '2' at the beginning of the response
-        match = re.match(r'^\s*([12])\b', ai_response_raw)
-        if match:
-            try:
-                ai_choice = int(match.group(1))
-            except ValueError:
-                print(f"AI response parsing error (ValueError) from '{ai_response_raw}'.")
-        else: # Fallback if no direct 1 or 2 found at the start
-            match_fallback = re.search(r'\b([12])\b', ai_response_raw) # Look for 1 or 2 anywhere
-            if match_fallback:
+            ai_choice = None
+            # Stricter parsing: expect '1' or '2' at the beginning of the response
+            match = re.match(r'^\s*([12])\b', ai_response_raw)
+            if match:
                 try:
-                    ai_choice = int(match_fallback.group(1))
-                    print(f"Used fallback regex to find choice: {ai_choice}")
+                    ai_choice = int(match.group(1))
                 except ValueError:
-                     print(f"AI response parsing error (ValueError) on fallback from '{ai_response_raw}'.")
+                    print(f"AI response parsing error (ValueError) from '{ai_response_raw}'.")
+            else: # Fallback if no direct 1 or 2 found at the start
+                match_fallback = re.search(r'\b([12])\b', ai_response_raw) # Look for 1 or 2 anywhere
+                if match_fallback:
+                    try:
+                        ai_choice = int(match_fallback.group(1))
+                        print(f"Used fallback regex to find choice: {ai_choice}")
+                    except ValueError:
+                        print(f"AI response parsing error (ValueError) on fallback from '{ai_response_raw}'.")
 
 
-        if ai_choice not in [1, 2]:
-            print(f"AI did not output a clear 1 or 2. Raw: '{ai_response_raw}'. Defaulting to previous AI choice: {previous_ai_choice}")
-            ai_choice = previous_ai_choice
-            if ai_choice not in [1,2]: # Ensure previous_ai_choice is valid, else default to 1
-                ai_choice = 1
+            if ai_choice not in [1, 2]:
+                print(f"AI did not output a clear 1 or 2. Asking again...")
+                while ai_choice not in [1, 2]:
+                    ai_response_raw = get_response(prompt)
+                    match = re.match(r'^\s*([12])\b', ai_response_raw)
+                    if match:
+                        ai_choice = int(match.group(1))
 
 
-        print(f"AI chose: Machine {ai_choice}")
 
-        total_ai_decisions += 1
-        # Machine 2 is objectively better (65% win rate).
-        # Count as "correct" if AI picks machine 2.
-        if ai_choice == 2:
-            correct_ai_choices += 1
+            print(f"AI chose: Machine {ai_choice}")
 
-        result = bandit_simulation(ai_choice)
-        current_choice_str = f"Slot Machine {ai_choice} {result}\n"
-        previous_outputs += current_choice_str # Add current result to history for next turn
-        previous_ai_choice = ai_choice # Update previous AI choice
+            total_ai_decisions += 1
+            # Machine 2 is objectively better (65% win rate).
+            # Count as "correct" if AI picks machine 2.
+            if ai_choice == 2:
+                correct_ai_choices += 1
 
-        print(f"Outcome: Machine {ai_choice} {result}.")
-        current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
-        print(f"AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
-        # For brevity, don't print full history each time
-        # print(f"Updated History (last 5 lines):\n{''.join(previous_outputs.splitlines(True)[-5:])}")
+            result = bandit_simulation(ai_choice)
+            current_choice_str = f"Slot Machine {ai_choice} {result}\n"
+            previous_outputs += current_choice_str # Add current result to history for next turn
+            previous_ai_choice = ai_choice # Update previous AI choice
 
-
-    print("\n--- Simulation Complete ---")
-    final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
-    print(f"Final AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {final_ratio:.2f}")
-    # print("\nFull History:")
-    # print(previous_outputs)
+            print(f"Outcome: Machine {ai_choice} {result}.")
+            current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
+            print(f"AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
+            if i == 24:
+                final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
+                iteration_results.append(final_ratio) 
+            # For brevity, don't print full history each time
+            # print(f"Updated History (last 5 lines):\n{''.join(previous_outputs.splitlines(True)[-5:])}")
+    print(iteration_results)
+    print(f"Average ratio: {sum(iteration_results) / len(iteration_results):.2f}")
 
 if __name__ == "__main__":
     main()
