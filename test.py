@@ -288,6 +288,7 @@ Your choice (1 or 2):""" # The final line cues the model
 
 if __name__ == "__main__":
     for i in range(500):
+        print(f"------------- Test {i+1} -------------")
         main()
     print(global_history)
     print(f"Average ratio: {sum(global_history) / len(global_history):.2f}")
