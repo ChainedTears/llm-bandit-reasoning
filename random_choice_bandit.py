@@ -1,4 +1,6 @@
-import secrets
+import random
+
+random.seed(0)
 
 def bandit_simulation(choice):
     """
@@ -6,18 +8,18 @@ def bandit_simulation(choice):
     Slot Machine 1: 30% win rate
     Slot Machine 2: 65% win rate
     """
-    random_number = secrets.randbelow(100)
+    r = random.random()
     if choice == 1:
-        return "won" if random_number < 30 else "lost"
+        return "won" if r < 0.30 else "lost"
     elif choice == 2:
-        return "won" if random_number < 65 else "lost"
+        return "won" if r < 0.65 else "lost"
 
 class RandomChoice:
     def __init__(self, n_arms):
         self.n_arms = n_arms
     
     def select_arm(self):
-        return secrets.randbelow(self.n_arms)
+        return random.randrange(self.n_arms)
 
     def update(self, chosen_arm, reward):
         # Random choice does not update anything

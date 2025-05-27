@@ -1,4 +1,6 @@
-import secrets
+import random
+
+random.seed(0)
 
 def bandit_simulation(choice):
     """
@@ -6,11 +8,11 @@ def bandit_simulation(choice):
     Slot Machine 1: 30% win rate
     Slot Machine 2: 65% win rate
     """
-    random_number = secrets.randbelow(100)
+    r = random.random()
     if choice == 1:
-        return "won" if random_number < 30 else "lost"
+        return "won" if r < 0.30 else "lost"
     elif choice == 2:
-        return "won" if random_number < 65 else "lost"
+        return "won" if r < 0.65 else "lost"
 
 class EpsilonGreedy:
     def __init__(self, n_arms, epsilon=0.1):
@@ -23,7 +25,7 @@ class EpsilonGreedy:
         import random
         # Explore with probability epsilon
         if random.random() < self.epsilon:
-            return secrets.randbelow(self.n_arms)
+            return random.randrange(self.n_arms)
         # Exploit: choose best known arm
         else:
             return self.values.index(max(self.values))
