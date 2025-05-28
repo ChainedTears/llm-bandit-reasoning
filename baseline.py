@@ -105,7 +105,7 @@ def get_response(prompt_text):
         outputs = model.generate(
             input_ids=inputs.input_ids,
             attention_mask=inputs.attention_mask, # Pass attention_mask
-            max_new_tokens=5,      # CRITICAL: Keep low for single digit output
+            max_new_tokens=3,      # CRITICAL: Keep low for single digit output
             do_sample=True,       # Greedy decoding; set to True with low temp if output is too repetitive
             temperature=0.7,     # Use if do_sample=True
             pad_token_id=tokenizer.pad_token_id,
