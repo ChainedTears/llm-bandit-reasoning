@@ -279,17 +279,17 @@ if __name__ == "__main__":
         main()
     # Writes output into result.txt; in case connection closes for runpod
     with open("result.txt", "w") as f:
-    if isinstance(global_history, list):
-        for item in global_history:
-            f.write(str(item) + "\n")
-    else:
-        f.write(str(global_history) + "\n")
-
-    if global_history:
-        average_ratio = sum(global_history) / len(global_history)
-        f.write(f"Average ratio: {average_ratio:.2f}\n")
-    else:
-        f.write("Average ratio: N/A (global_history is empty)\n")
+        if isinstance(global_history, list):
+            for item in global_history:
+                f.write(str(item) + "\n")
+        else:
+            f.write(str(global_history) + "\n")
+    
+        if global_history:
+            average_ratio = sum(global_history) / len(global_history)
+            f.write(f"Average ratio: {average_ratio:.2f}\n")
+        else:
+            f.write("Average ratio: N/A (global_history is empty)\n")
 
     raw_accuracy = correct_counter / 500
     f.write(f"Raw accuracy: {raw_accuracy}\n")
