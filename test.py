@@ -19,9 +19,9 @@ model_dict = {
     '7': "openai/whisper-large-v3"
 }
 
-receive = input("Please select the model (using a number from 1-5): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+receive = input("Please select the model (using a number from 1-7): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n (7) Whisper Large V3 \n Select here: ")
 while receive not in model_dict:
-    receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n Select here: ")
+    receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n (7) Whisper Large V3 \n Select here: ")
 model_id = model_dict[receive]
 
 # Setup device (MPS for Mac, CUDA, fallback to CPU)
@@ -177,19 +177,6 @@ correct_counter = 0
 def main():
     previous_outputs = ""
     correct_ai_choices, total_ai_decisions, previous_ai_choice = 0, 0, 1 # Metrics for AI
-
-    # Seed history for a better start
-    initial_history_seed = [
-        (1, bandit_simulation(1)),
-        (2, bandit_simulation(2)),
-        (1, bandit_simulation(1)),
-        (2, bandit_simulation(2)),
-    ]
-    for ch, res in initial_history_seed:
-        previous_outputs += f"Slot Machine {ch} {res}\n"
-
-    print("Initial History:")
-    print(previous_outputs)
 
     max_iterations = 25 # Number of decisions the AI will make
     iteration_results = [] 
