@@ -13,18 +13,20 @@ def plot_results(choices, correctness, model_name="model"):
 
     iterations = list(range(1, len(choices) + 1))
 
+    # Plot 1: Choices Over Iterations
     plt.figure(figsize=(10, 4))
     plt.step(iterations, choices, where='post')
     plt.xlabel('Iteration')
     plt.ylabel('AI Choice (Slot Machine)')
     plt.title(f'AI Slot Machine Choices Over Iterations\nModel: {model_name}')
-    plt.yticks([1, 2])
+    plt.yticks(sorted(set(choices)))
     plt.grid(True)
     choice_path = os.path.join(output_dir, f"choices_plot_{safe_model_name}_{timestamp}.png")
     plt.savefig(choice_path)
     plt.close()
     print(f"Saved choices plot to: {choice_path}")
 
+    # Plot 2: Correctness Over Iterations
     plt.figure(figsize=(10, 4))
     plt.plot(iterations, correctness, marker='o')
     plt.xlabel('Iteration')
@@ -53,6 +55,10 @@ def main():
     model_name = data.get("model", "unknown_model")
     choices = data.get("choices", [])
     correctness = data.get("correctness", [])
+
+    if not choices or not correctness:
+        print("Error: 'choices' or 'correctness' data missing or empty in JSON.")
+        sys.exit(1)
 
     plot_results(choices, correctness, model_name)
 
