@@ -1,6 +1,7 @@
 import random
 
 random.seed(0)
+
 def bandit_simulation(choice):
     """
     Simulates the slot machine bandit.
@@ -30,37 +31,47 @@ class ThompsonSampling:
             self.failures[chosen_arm] += 1
 
 def main():
-    ts = ThompsonSampling(2)
-    results_log = []
-    max_iterations = 100
-    total_reward = 0
+    simulations = 500
+    iterations_per_simulation = 25
 
-    # Pull both arms once initially to avoid tie bias
-    for arm in range(ts.n_arms):
-        machine = arm + 1
-        result = bandit_simulation(machine)
-        reward = 1 if result == "won" else 0
-        ts.update(arm, reward)
-        total_reward += reward
-        results_log.append((machine, result))
-        print(f"Initial pull: Slot Machine {machine} -> {result}")
-        print(f"Successes: {ts.successes}, Failures: {ts.failures}\n")
+    all_simulation_rewards = []
 
-    # Main loop
-    for i in range(max_iterations):
-        chosen_arm = ts.select_arm()
-        machine = chosen_arm + 1
-        result = bandit_simulation(machine)
-        reward = 1 if result == "won" else 0
-        ts.update(chosen_arm, reward)
-        total_reward += reward
+    for sim in range(simulations):
+        ts = ThompsonSampling(2)
+        results_log = []
+        total_reward = 0
 
-        results_log.append((machine, result))
-        print(f"Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
-        print(f"Successes: {ts.successes}, Failures: {ts.failures}\n")
+        # Pull both arms once initially to avoid tie bias
+        for arm in range(ts.n_arms):
+            machine = arm + 1
+            result = bandit_simulation(machine)
+            reward = 1 if result == "won" else 0
+            ts.update(arm, reward)
+            total_reward += reward
+            results_log.append((machine, result))
+            print(f"Simulation {sim+1}, Initial pull: Slot Machine {machine} -> {result}")
+            print(f"Successes: {ts.successes}, Failures: {ts.failures}\n")
 
-    print(f"Total wins: {total_reward} out of {max_iterations + ts.n_arms} plays.")
-    print(f"Win rate: {total_reward / (max_iterations + ts.n_arms):.2f}")
+        # Main loop
+        for i in range(iterations_per_simulation):
+            chosen_arm = ts.select_arm()
+            machine = chosen_arm + 1
+            result = bandit_simulation(machine)
+            reward = 1 if result == "won" else 0
+            ts.update(chosen_arm, reward)
+            total_reward += reward
+
+            results_log.append((machine, result))
+            print(f"Simulation {sim+1}, Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
+            print(f"Successes: {ts.successes}, Failures: {ts.failures}\n")
+
+        all_simulation_rewards.append(total_reward)
+
+    # Final summary across all simulations
+    average_reward = sum(all_simulation_rewards) / simulations
+    print(f"\n==== Summary after {simulations} simulations of {iterations_per_simulation} iterations each ====")
+    print(f"Average Total Reward: {average_reward:.2f}")
+    print(f"Average Win Rate: {average_reward / (iterations_per_simulation + ts.n_arms):.2f}")
 
 if __name__ == "__main__":
     main()
