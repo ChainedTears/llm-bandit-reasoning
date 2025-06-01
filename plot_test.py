@@ -3,7 +3,7 @@ import sys
 import json
 import time
 import matplotlib.pyplot as plt
-import numpy as np # For plotting std dev if needed
+import numpy as np 
 
 def plot_averaged_results(averaged_data_json, source_json_filename_base):
     plots_output_dir = "plot_results"
@@ -13,10 +13,9 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
     model_name = metadata.get("model_id", "unknown_model")
     safe_model_name_plots = model_name.replace("/", "_")
     num_iterations = metadata.get("iterations_per_run", 0)
-    total_runs = metadata.get("total_simulation_runs", "N/A")
+    total_runs = metadata.get("successful_runs", metadata.get("total_simulation_runs_attempted", "N/A")) # Use successful_runs
 
     learning_curves = averaged_data_json.get("averaged_learning_curves", {})
-    
     plotting_run_timestamp = time.strftime("%Y%m%d-%H%M%S")
 
     if num_iterations == 0:
@@ -27,7 +26,7 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
         return
 
     iteration_numbers = list(range(1, num_iterations + 1))
-    title_suffix = f"\nModel: {model_name} (Avg. over {total_runs} runs)\nSource: {source_json_filename_base}.json"
+    title_suffix = f"\nModel: {model_name} (Avg. over {total_runs} successful runs)\nSource: {source_json_filename_base}.json"
 
     # --- Plot 1: Averaged Cumulative Reward ---
     avg_cum_rewards = learning_curves.get("avg_cumulative_rewards_per_iteration", [])
@@ -46,8 +45,6 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
         reward_plot_path = os.path.join(plots_output_dir, f"avg_cum_reward_{safe_model_name_plots}_{plotting_run_timestamp}.png")
         plt.savefig(reward_plot_path); plt.close()
         print(f"Saved avg cumulative reward plot to: {reward_plot_path}")
-    else:
-        print("Warning: Averaged cumulative reward data missing.")
 
     # --- Plot 2: Averaged Cumulative Regret ---
     avg_cum_regrets = learning_curves.get("avg_cumulative_regrets_per_iteration", [])
@@ -66,8 +63,6 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
         regret_plot_path = os.path.join(plots_output_dir, f"avg_cum_regret_{safe_model_name_plots}_{plotting_run_timestamp}.png")
         plt.savefig(regret_plot_path); plt.close()
         print(f"Saved avg cumulative regret plot to: {regret_plot_path}")
-    else:
-        print("Warning: Averaged cumulative regret data missing.")
 
     # --- Plot 3: Averaged Optimal Arm Selection Ratio ---
     avg_opt_arm_ratio = learning_curves.get("avg_optimal_arm_selection_ratio_per_iteration", [])
@@ -86,10 +81,8 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
         opt_ratio_plot_path = os.path.join(plots_output_dir, f"avg_opt_arm_ratio_{safe_model_name_plots}_{plotting_run_timestamp}.png")
         plt.savefig(opt_ratio_plot_path); plt.close()
         print(f"Saved avg optimal arm selection ratio plot to: {opt_ratio_plot_path}")
-    else:
-        print("Warning: Averaged optimal arm selection ratio data missing.")
 
-    # --- Plot 4: Averaged Probability of Choosing Arm 2 (Optimal Arm) at each step ---
+    # --- Plot 4: Averaged Probability of Choosing Arm 2 ---
     avg_prob_choice2 = learning_curves.get("avg_prob_choice_arm2_per_iteration", [])
     std_prob_choice2 = learning_curves.get("std_prob_choice_arm2_per_iteration", [])
     if avg_prob_choice2:
@@ -106,35 +99,22 @@ def plot_averaged_results(averaged_data_json, source_json_filename_base):
         prob_choice_plot_path = os.path.join(plots_output_dir, f"avg_prob_choice2_{safe_model_name_plots}_{plotting_run_timestamp}.png")
         plt.savefig(prob_choice_plot_path); plt.close()
         print(f"Saved avg probability of choosing Arm 2 plot to: {prob_choice_plot_path}")
-    else:
-        print("Warning: Averaged P(Choose Arm 2) data missing.")
-
 
 def main():
-    if len(sys.argv) < 2: # Expects 1 argument: path to the AVERAGED JSON
+    if len(sys.argv) < 2:
         print("Usage: python plot_test.py <path_to_averaged_results_file.json>")
-        print("Example: python plot_test.py simulation_results/AVERAGED_bandit_results_MODEL_500runs_TIMESTAMP.json")
         sys.exit(1)
-
     input_json_file_path = sys.argv[1]
-
     if not os.path.isfile(input_json_file_path):
-        print(f"Error: File not found: {input_json_file_path}")
-        sys.exit(1)
-
+        print(f"Error: File not found: {input_json_file_path}"); sys.exit(1)
     source_json_filename_base = os.path.splitext(os.path.basename(input_json_file_path))[0]
     try:
         with open(input_json_file_path, "r") as f: loaded_data = json.load(f)
-    except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from {input_json_file_path}."); sys.exit(1)
-    except Exception as e:
-        print(f"An error occurred while reading {input_json_file_path}: {e}"); sys.exit(1)
-        
+    except json.JSONDecodeError: print(f"Error: Could not decode JSON from {input_json_file_path}."); sys.exit(1)
+    except Exception as e: print(f"An error occurred: {e}"); sys.exit(1)
     required_keys = ["experiment_metadata", "averaged_learning_curves"] 
     if not all(key in loaded_data for key in required_keys):
-        print(f"Error: JSON file {input_json_file_path} is missing required keys for averaged data plotting.")
-        sys.exit(1)
-
+        print(f"Error: JSON file is missing required keys for averaged data plotting."); sys.exit(1)
     plot_averaged_results(loaded_data, source_json_filename_base)
 
 if __name__ == "__main__":
