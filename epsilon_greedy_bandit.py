@@ -39,34 +39,45 @@ class EpsilonGreedy:
 
 def main():
     epsilon = 0.1  # Set exploration rate to 10%
-    eg = EpsilonGreedy(2, epsilon)  # Initialize strategy for 2 slot machines
-    results_log = []                # Keep track of all results for analysis
-    max_iterations = 100            # Total number of plays to simulate
+    simulations = 500
+    iterations_per_simulation = 25
+    all_simulation_wins = []
 
-    for i in range(max_iterations):
-        chosen_arm = eg.select_arm()  # Choose arm to play (0 or 1)
-        machine = chosen_arm + 1      # Slot machines are labeled 1 and 2 for clarity
-        
-        # Simulate the slot machine pull and get result
-        result = bandit_simulation(machine)
-        
-        # Convert "won"/"lost" to numeric reward (1 or 0)
-        reward = 1 if result == "won" else 0
-        
-        # Update strategy with the reward received
-        eg.update(chosen_arm, reward)
-        
-        # Log the result of this iteration
-        results_log.append((machine, result))
-        
-        # Print detailed iteration results and current strategy state
-        print(f"Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
-        print(f"Counts: {eg.counts}, Average rewards: {eg.values}\n")
+    for sim in range(simulations):
+        eg = EpsilonGreedy(2, epsilon)  # Initialize strategy for 2 slot machines
+        results_log = []                # Keep track of all results for analysis
 
-    # After all iterations, calculate total wins and overall win rate
-    total_wins = sum(1 for _, r in results_log if r == "won")
-    print(f"Total wins: {total_wins} out of {max_iterations} plays.")
-    print(f"Win rate: {total_wins / max_iterations:.2f}")
+        for i in range(iterations_per_simulation):
+            chosen_arm = eg.select_arm()  # Choose arm to play (0 or 1)
+            machine = chosen_arm + 1      # Slot machines are labeled 1 and 2 for clarity
+
+            # Simulate the slot machine pull and get result
+            result = bandit_simulation(machine)
+
+            # Convert "won"/"lost" to numeric reward (1 or 0)
+            reward = 1 if result == "won" else 0
+
+            # Update strategy with the reward received
+            eg.update(chosen_arm, reward)
+
+            # Log the result of this iteration
+            results_log.append((machine, result))
+
+            # Print detailed iteration results and current strategy state
+            print(f"Simulation {sim+1}, Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
+            print(f"Counts: {eg.counts}, Average rewards: {eg.values}\n")
+
+        # After each simulation, calculate total wins
+        total_wins = sum(1 for _, r in results_log if r == "won")
+        all_simulation_wins.append(total_wins)
+
+    # After all simulations, calculate average wins and overall win rate
+    average_wins = sum(all_simulation_wins) / simulations
+    average_win_rate = average_wins / iterations_per_simulation
+    print(f"\n==== Summary after {simulations} simulations of {iterations_per_simulation} iterations each ====")
+    print(f"Average Total Wins: {average_wins:.2f}")
+    print(f"Average Win Rate: {average_win_rate:.2f}")
 
 if __name__ == "__main__":
     main()
+    
