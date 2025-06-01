@@ -13,23 +13,28 @@ import numpy as np
 # Login via `huggingface-cli login` or ensure token is in environment.
 # login(token="YOUR_HF_TOKEN_HERE") # Uncomment and replace if providing token directly
 
+# User's original model dictionary
 model_dict = {
-    '1': "Qwen/Qwen2-1.5B-Instruct",
-    '2': "Qwen/Qwen2-7B-Instruct",
-    '3': "meta-llama/Meta-Llama-3-8B-Instruct",
-    '4': "mistralai/Mistral-7B-Instruct-v0.2",
+    '1': "Qwen/Qwen3-4B",
+    '2': "Qwen/Qwen3-8B",
+    '3': "meta-llama/Llama-3.1-8B",
+    '4': "deepseek-ai/DeepSeek-R1",
     '5': "microsoft/phi-2",
-    '6': "google/gemma-2-9b-it",
+    '6': "google/gemma-3-12b-it",
+    '7': "openai/whisper-large-v3"
 }
 
-print("Please select the model (using a number):")
-for k, v_model_id in model_dict.items():
-    model_name_simple = v_model_id.split('/')[-1]
-    print(f" ({k}) {model_name_simple}")
-
+print("Please select the model (using a number from 1-7):")
+# User's original input prompt text
+print(" (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n (7) Whisper Large V3")
 receive = input("Select here: ")
+
 while receive not in model_dict:
-    receive = input(f"Invalid selection. Please choose from {list(model_dict.keys())}: ")
+    # Re-prompting with the user's original options if input is invalid
+    print("\nInvalid selection. Please select the model (using a number from 1-7):")
+    print(" (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n (7) Whisper Large V3")
+    receive = input("Select here: ")
+
 model_id = model_dict[receive]
 safe_model_name_for_filename = model_id.replace("/", "_")
 
@@ -53,6 +58,8 @@ try:
     print("Tokenizer loaded successfully.")
 except Exception as e:
     print(f"Error loading tokenizer for {model_id}: {e}")
+    print("Please ensure the model name is correct and the model is accessible on Hugging Face Hub.")
+    print("If using Whisper, note it's a speech model and not suitable for this text-based task, which might cause loading issues with AutoModelForCausalLM.")
     sys.exit(1)
 
 if tokenizer:
@@ -67,6 +74,8 @@ if tokenizer:
                 dtype = torch.float16
         
         print(f"Loading model {model_id} with dtype: {dtype}...")
+        # For a task requiring text generation (like choosing '1' or '2'), AutoModelForCausalLM is appropriate.
+        # If a model in the list is not a Causal LM (e.g., Whisper), this line will likely fail.
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
             torch_dtype=dtype,
@@ -77,6 +86,9 @@ if tokenizer:
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error loading model {model_id}: {e}")
+        print(f"This can happen if the model '{model_id}' is not a Causal Language Model (e.g., Whisper models are for speech recognition),")
+        print("or if it requires `trust_remote_code=True` (which you can try uncommenting above),")
+        print("or if there's an issue with the model on Hugging Face Hub or your connection.")
         sys.exit(1)
 
 if tokenizer and tokenizer.pad_token_id is None:
@@ -86,6 +98,11 @@ if tokenizer and tokenizer.pad_token_id is None:
 def get_response(prompt_text, current_tokenizer, current_model, current_device):
     if current_model is None or current_tokenizer is None:
         return "Model or tokenizer not loaded."
+
+    # This check is important for models not designed for text generation based on prompts
+    if not hasattr(current_model, 'generate'):
+        print(f"Error: The loaded model for {model_id} does not have a 'generate' method. It might not be a Causal LM suitable for this task.")
+        return "MODEL_ERROR_NO_GENERATE"
 
     max_prompt_len = getattr(current_tokenizer, 'model_max_length', 2048) // 2
     
@@ -183,6 +200,14 @@ History:
                 print(f"Retrying AI response generation/parsing (attempt {attempts + 1})...")
             
             ai_response_raw = get_response(prompt, current_tokenizer, current_model, current_device)
+            
+            if ai_response_raw == "MODEL_ERROR_NO_GENERATE": # Handle case where model can't generate
+                print(f"Model {current_model_id} cannot generate text. Skipping this run or using random choice.")
+                # For this iteration, let's use random as a fallback if model is unsuitable
+                ai_choice = secrets.choice([1,2])
+                print(f"Using random choice {ai_choice} due to model error.")
+                break # Break from parsing attempts, ai_choice is set
+
             print(f"Raw AI Response: '{ai_response_raw}'")
 
             match = re.match(r'^\s*([12])\b', ai_response_raw) # Strict parsing
@@ -199,8 +224,9 @@ History:
             if ai_choice not in [1, 2]:
                 ai_choice = None 
             attempts += 1
-
-        if ai_choice is None:
+        
+        # This outer if is only needed if the inner break for MODEL_ERROR_NO_GENERATE wasn't hit
+        if ai_choice is None: # if still None after parsing attempts (and not model error)
             print(f"Failed to get a valid choice from AI. Defaulting to random for this iteration.")
             ai_choice = secrets.choice([1, 2]) 
 
@@ -268,8 +294,9 @@ History:
     return full_output_path
 
 if __name__ == "__main__":
+    # Check model/tokenizer loading after user selection, before starting simulation runs.
     if model is None or tokenizer is None:
-        print("Exiting due to model or tokenizer loading failure.")
+        print("Model or tokenizer was not loaded successfully (possibly due to an issue with the selected model_id). Exiting.")
         sys.exit(1)
         
     TOTAL_SIMULATION_RUNS = 1 # Number of independent simulation runs
