@@ -26,22 +26,31 @@ class RandomChoice:
         pass
 
 def main():
-    random_agent = RandomChoice(2)
-    results_log = []
-    max_iterations = 100
+    simulations = 500
+    iterations_per_simulation = 25
+    all_simulation_wins = []
 
-    for i in range(max_iterations):
-        chosen_arm = random_agent.select_arm()  # 0 or 1
-        machine = chosen_arm + 1
-        result = bandit_simulation(machine)
-        reward = 1 if result == "won" else 0
-        random_agent.update(chosen_arm, reward)
-        results_log.append((machine, result))
-        print(f"Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
+    for sim in range(simulations):
+        random_agent = RandomChoice(2)
+        results_log = []
 
-    total_wins = sum(1 for _, r in results_log if r == "won")
-    print(f"Total wins: {total_wins} out of {max_iterations} plays.")
-    print(f"Win rate: {total_wins / max_iterations:.2f}")
+        for i in range(iterations_per_simulation):
+            chosen_arm = random_agent.select_arm()  # 0 or 1
+            machine = chosen_arm + 1
+            result = bandit_simulation(machine)
+            reward = 1 if result == "won" else 0
+            random_agent.update(chosen_arm, reward)
+            results_log.append((machine, result))
+            print(f"Simulation {sim+1}, Iteration {i+1}: Chose Slot Machine {machine} -> {result}")
+
+        total_wins = sum(1 for _, r in results_log if r == "won")
+        all_simulation_wins.append(total_wins)
+
+    average_wins = sum(all_simulation_wins) / simulations
+    average_win_rate = average_wins / iterations_per_simulation
+    print(f"\n==== Summary after {simulations} simulations of {iterations_per_simulation} iterations each ====")
+    print(f"Average Total Wins: {average_wins:.2f}")
+    print(f"Average Win Rate: {average_win_rate:.2f}")
 
 if __name__ == "__main__":
     main()
