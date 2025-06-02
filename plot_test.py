@@ -3,39 +3,38 @@ import sys
 import json
 import time
 import matplotlib.pyplot as plt
-import numpy as np # For std dev bands
+import numpy as np 
 
-def plot_averaged_results(json_data_to_plot, source_json_basename):
-    output_dir = "plot_results"
-    os.makedirs(output_dir, exist_ok=True)
+def plot_averaged_results(averaged_data_json, source_json_basename):
+    plots_output_dir = "plot_results"
+    os.makedirs(plots_output_dir, exist_ok=True)
 
-    metadata = json_data_to_plot.get("experiment_metadata", {})
+    metadata = averaged_data_json.get("experiment_metadata", {})
     model_name = metadata.get("model_id", "unknown_model")
-    safe_model_name = model_name.replace("/", "_")
+    safe_model_name_plots = model_name.replace("/", "_")
     num_iterations = metadata.get("iterations_per_run", 0)
-    num_successful_runs = metadata.get("successful_runs_averaged", "N/A")
+    # Use successful_runs for the title if available, otherwise fall back
+    num_successful_runs = metadata.get("successful_runs_averaged", metadata.get("total_runs_attempted", "N/A")) 
 
-    avg_curves = json_data_to_plot.get("averaged_learning_curves", {})
-    
-    plot_timestamp = time.strftime("%Y%m%d-%H%M%S")
+    learning_curves = averaged_data_json.get("averaged_learning_curves", {})
+    plotting_run_timestamp = time.strftime("%Y%m%d-%H%M%S")
 
-    if num_iterations == 0 or not avg_curves:
+    if num_iterations == 0 or not learning_curves:
         print("Error: Insufficient data in JSON for plotting averaged curves.")
         return
 
-    iterations_axis = avg_curves.get("iterations", list(range(1, num_iterations + 1)))
-    # Fallback if "iterations" key is missing but num_iterations is present
-    if not avg_curves.get("iterations") and num_iterations > 0:
+    iterations_axis = learning_curves.get("iterations", list(range(1, num_iterations + 1)))
+    if not learning_curves.get("iterations") and num_iterations > 0: # Fallback
         iterations_axis = list(range(1, num_iterations + 1))
 
 
-    title_suffix = f"\nModel: {model_name} (Avg. over {num_successful_runs} runs)\nSource: {source_json_basename}.json"
+    title_suffix = f"\nModel: {model_name} (Avg. over {num_successful_runs} successful runs)\nSource: {source_json_basename}.json"
 
     # Plot 1: Averaged Cumulative Reward
-    avg_cum_reward = avg_curves.get("avg_cumulative_reward_per_iteration")
-    std_cum_reward = avg_curves.get("std_cumulative_reward_per_iteration")
+    avg_cum_reward = learning_curves.get("avg_cumulative_reward_per_iteration")
+    std_cum_reward = learning_curves.get("std_cumulative_reward_per_iteration")
     if avg_cum_reward:
-        plt.figure(figsize=(10, 5)) # Adjusted size
+        plt.figure(figsize=(10, 5))
         plt.plot(iterations_axis, avg_cum_reward, marker='o', linestyle='-', markersize=4, color='green', label='Avg. Cumulative Reward')
         if std_cum_reward and len(std_cum_reward) == len(avg_cum_reward):
             plt.fill_between(iterations_axis, 
@@ -45,13 +44,13 @@ def plot_averaged_results(json_data_to_plot, source_json_basename):
         plt.xlabel('Iteration'); plt.ylabel('Avg. Cumulative Reward')
         plt.title(f"Average Cumulative Reward{title_suffix}")
         plt.grid(True, alpha=0.6); plt.legend(); plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"AVG_CumReward_{safe_model_name}_{plot_timestamp}.png"))
+        plt.savefig(os.path.join(output_dir, f"AVG_CumReward_{safe_model_name_plots}_{plotting_run_timestamp}.png"))
         plt.close(); print(f"Saved Avg. Cumulative Reward plot.")
     else: print("Skipping Avg. Cumulative Reward plot: data not found.")
 
     # Plot 2: Averaged Cumulative Regret
-    avg_cum_regret = avg_curves.get("avg_cumulative_regret_per_iteration")
-    std_cum_regret = avg_curves.get("std_cumulative_regret_per_iteration")
+    avg_cum_regret = learning_curves.get("avg_cumulative_regret_per_iteration")
+    std_cum_regret = learning_curves.get("std_cumulative_regret_per_iteration")
     if avg_cum_regret:
         plt.figure(figsize=(10, 5))
         plt.plot(iterations_axis, avg_cum_regret, marker='s', linestyle='-', markersize=4, color='red', label='Avg. Cumulative Regret')
@@ -63,13 +62,13 @@ def plot_averaged_results(json_data_to_plot, source_json_basename):
         plt.xlabel('Iteration'); plt.ylabel('Avg. Cumulative Regret')
         plt.title(f"Average Cumulative Regret{title_suffix}")
         plt.grid(True, alpha=0.6); plt.legend(); plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"AVG_CumRegret_{safe_model_name}_{plot_timestamp}.png"))
+        plt.savefig(os.path.join(output_dir, f"AVG_CumRegret_{safe_model_name_plots}_{plotting_run_timestamp}.png"))
         plt.close(); print(f"Saved Avg. Cumulative Regret plot.")
     else: print("Skipping Avg. Cumulative Regret plot: data not found.")
 
     # Plot 3: Averaged Optimal Arm Selection Ratio
-    avg_opt_ratio = avg_curves.get("avg_optimal_arm_selection_ratio_per_iteration")
-    std_opt_ratio = avg_curves.get("std_optimal_arm_selection_ratio_per_iteration")
+    avg_opt_ratio = learning_curves.get("avg_optimal_arm_selection_ratio_per_iteration")
+    std_opt_ratio = learning_curves.get("std_optimal_arm_selection_ratio_per_iteration")
     if avg_opt_ratio:
         plt.figure(figsize=(10, 5))
         plt.plot(iterations_axis, avg_opt_ratio, marker='^', linestyle='-', markersize=4, color='purple', label='Avg. Optimal Arm Selection Ratio')
@@ -81,7 +80,7 @@ def plot_averaged_results(json_data_to_plot, source_json_basename):
         plt.xlabel('Iteration'); plt.ylabel('Avg. Optimal Arm Selection Ratio')
         plt.title(f"Average Optimal Arm Selection Ratio{title_suffix}")
         plt.ylim(0, 1.05); plt.grid(True, alpha=0.6); plt.legend(); plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"AVG_OptimalRatio_{safe_model_name}_{plot_timestamp}.png"))
+        plt.savefig(os.path.join(output_dir, f"AVG_OptimalRatio_{safe_model_name_plots}_{plotting_run_timestamp}.png"))
         plt.close(); print(f"Saved Avg. Optimal Arm Selection Ratio plot.")
     else: print("Skipping Avg. Optimal Arm Selection Ratio plot: data not found.")
 
@@ -99,7 +98,7 @@ def plot_averaged_results(json_data_to_plot, source_json_basename):
         plt.xlabel('Iteration'); plt.ylabel('Avg. P(Choose Optimal Arm 2)')
         plt.title(f"Average Prob. of Choosing Optimal Arm (Arm 2){title_suffix}")
         plt.ylim(0, 1.05); plt.grid(True, alpha=0.6); plt.legend(); plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"AVG_ProbOptimalChoice_{safe_model_name}_{plot_timestamp}.png"))
+        plt.savefig(os.path.join(output_dir, f"AVG_ProbOptimalChoice_{safe_model_name_plots}_{plotting_run_timestamp}.png"))
         plt.close(); print(f"Saved Avg. Prob. Optimal Choice plot.")
     else: print("Skipping Avg. Prob. Optimal Choice plot: data not found.")
 
@@ -119,7 +118,6 @@ def main():
     with open(results_file, "r") as f:
         data = json.load(f)
 
-    # Check for the main keys this script expects from the averaged JSON
     if "experiment_metadata" not in data or "averaged_learning_curves" not in data:
         print("Error: JSON file does not appear to contain averaged results data in the expected format.")
         sys.exit(1)
