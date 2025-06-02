@@ -174,6 +174,7 @@ global_history = []
 correct_counter = 0
 
 def main():
+    cumulative_reward = 0
     previous_outputs = ""
     correct_ai_choices, total_ai_decisions, previous_ai_choice = 0, 0, 1 # Metrics for AI
 
@@ -213,8 +214,6 @@ History:
 {previous_outputs}
 Your choice (1 or 2):""" # The final line cues the model
 
-        # print(f"DEBUG: Prompt sent to AI (last 300 chars):\n...{prompt[-300:]}") # For debugging
-
         ai_response_raw = get_response(prompt)
         print(f"Raw AI Response: {ai_response_raw}")
 
@@ -253,6 +252,10 @@ Your choice (1 or 2):""" # The final line cues the model
         # Count as "correct" if AI picks machine 2.
         if ai_choice == 2:
             correct_ai_choices += 1
+            cumulative_reward += 1
+        else:
+            cumulative_reward -= 1
+
 
         result = bandit_simulation(ai_choice)
         current_choice_str = f"Slot Machine {ai_choice} {result}\n"
@@ -266,7 +269,7 @@ Your choice (1 or 2):""" # The final line cues the model
         print(f"AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
     
     final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
-    global_history.append(final_ratio)
+    global_history.append([final_ratio, cumulative_reward])
     print("--------------------------------")
     print(f"Final ratio: {final_ratio:.2f}")
             # For brevity, don't print full history each time
@@ -291,54 +294,3 @@ if __name__ == "__main__":
         print(f"Raw accuracy: {raw_accuracy}\n")
         f.write(f"Raw accuracy: {raw_accuracy}\n")
     print("Results have been written to result.txt")
-
-# Main execution loop
-# def main():
-#     previous_outputs = ""
-#     correct, ratio, total, previous_choice = 0, 0.0, 0, 1
-#     # Run for 10 iterations
-#     while total < 100 or (ratio < 0.8 and total > 20):
-#         prompt = f"""I am in a casino with two slot machines, 1 and 2.
-# I will output either a 1 or a 2, based on the history of my choices and results, which are:
-# {previous_outputs}
-# I am in a casino with two slot machines, 1 and 2.
-# I will output either a 1 or a 2, based on the history of my choices and results, which are:
-# {previous_outputs}
-# I will give my output in this format:
-# Output: <number>
-
-# Output:
-# """
-#         if previous_choice == 2:
-#             correct += 1
-#         total += 1
-#         ratio = correct / total
-#         print(f"------------- Iteration {total} -------------")
-#         print(f"Correct: {correct} Ratio: {ratio} Total: {total}")
-        
-#         if total == 0:
-#             choice = 1
-#             previous_choice = 1
-#             result = bandit_simulation(choice)
-#             previous_outputs += f"Slot Machine {choice} {result}\n"
-#             print(previous_outputs)
-#         else:
-#             ai_response = get_response(prompt)
-            
-#             try:
-#                 print(ai_response)
-#                 choice = int(re.search(r'Output:\s*(\d+)', ai_response).group(1))
-#                 print(choice)
-#                 previous_choice = choice
-#                 if choice not in [1, 2]:
-#                     print(f"Invalid choice '{choice}'")
-#                     return
-#             except ValueError:
-#                 print(f"Invalid response '{ai_response}'")
-#                 return
-#             result = bandit_simulation(choice)
-#             previous_outputs += f"Slot Machine {choice} {result}\n"
-#             print(previous_outputs)
-
-# if __name__ == "__main__":
-#     main()
