@@ -2,15 +2,17 @@ import time
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import secrets
-# from huggingface_hub import login # You'll need to be logged in via CLI or uncomment and use your token
+# from huggingface_hub import login # Ensure you are logged in via CLI or uncomment and use your token
 import re
 import numpy as np
 import copy # For deep copying scenario configurations
+import json # For saving results
+import os # For creating directories
 
-# --- Hugging Face Login (ensure you're logged in, or use a token) ---
-# login(token="YOUR_HF_TOKEN_HERE") # Replace if you're not using CLI login
+# --- Hugging Face Login (ensure you're logged in, or use a token if needed) ---
+# login(token="YOUR_HF_TOKEN_HERE") 
 
-# --- Scenario Definitions ---
+# --- Scenario Definitions (Same as before, with SlotMachine included) ---
 ALL_SCENARIOS = {
     "SlotMachine": {
         "scenario_name": "Classic Slot Machine Challenge",
@@ -174,23 +176,23 @@ Your choice (DIETP, DIETM, DIETV): DIETM"""
 # --- Model Setup (Using YOUR original list) ---
 # This is your requested model dictionary
 model_dict = {
-    '1': "Qwen/Qwen2-1.5B-Instruct", # Changed from Qwen/Qwen3-4B to a more recent/available instruct variant
-    '2': "Qwen/Qwen2-7B-Instruct",  # Changed from Qwen/Qwen3-8B to a more recent/available instruct variant
-    '3': "meta-llama/Meta-Llama-3-8B-Instruct", # Kept as Llama-3 8B Instruct
+    '1': "Qwen/Qwen2-1.5B-Instruct", # My suggestion for Qwen3-4B
+    '2': "Qwen/Qwen2-7B-Instruct",  # My suggestion for Qwen3-8B
+    '3': "meta-llama/Meta-Llama-3-8B-Instruct", # My suggestion for Llama-3.1-8B
     '4': "deepseek-ai/DeepSeek-R1", # Kept as per your request. NOTE: May require trust_remote_code=True
     '5': "microsoft/phi-2", # Kept as per your request
-    '6': "google/gemma-2-9b-it", # Changed from gemma-3-12b-it to an available Gemma-2 instruct model
-    '7': "openai/whisper-large-v3"  # Kept as per your request. WARNING: This is a SPEECH-TO-TEXT model, not suitable for this task. It will likely error or give nonsensical results.
+    '6': "google/gemma-2-9b-it", # My suggestion for gemma-3-12b-it
+    '7': "openai/whisper-large-v3"  # Kept as per your request. WARNING: This is a SPEECH-TO-TEXT model.
 }
 
-print("Please select the LLM model (using a number from your original list):")
-print(" (1) Qwen/Qwen2-1.5B-Instruct (was Qwen3-4B)")
-print(" (2) Qwen/Qwen2-7B-Instruct (was Qwen3-8B)")
-print(" (3) meta-llama/Meta-Llama-3-8B-Instruct (was Llama-3.1-8B)")
+print("Please select the LLM model (using a number from your original list, with some suggestions):")
+print(" (1) Qwen/Qwen2-1.5B-Instruct (Suggested for Qwen3-4B)")
+print(" (2) Qwen/Qwen2-7B-Instruct (Suggested for Qwen3-8B)")
+print(" (3) meta-llama/Meta-Llama-3-8B-Instruct (Suggested for Llama-3.1-8B)")
 print(" (4) deepseek-ai/DeepSeek-R1")
 print(" (5) microsoft/phi-2")
-print(" (6) google/gemma-2-9b-it (was gemma-3-12b-it)")
-print(" (7) openai/whisper-large-v3 (WARNING: Speech-to-text model!)")
+print(" (6) google/gemma-2-9b-it (Suggested for gemma-3-12b-it)")
+print(" (7) openai/whisper-large-v3 (WARNING: Speech-to-text model! Unlikely to work for this task.)")
 
 receive_model_key = input("Select here: ")
 while receive_model_key not in model_dict:
@@ -218,13 +220,11 @@ except Exception as e:
     if "whisper" in model_id.lower():
         print("Hint: Whisper models are for speech processing and have different tokenizers/usage patterns than text generation models.")
 
-
 # Load model
 model = None
 if tokenizer:
-    # WARNING for Whisper: It's not a AutoModelForCausalLM. This will likely fail.
-    if "openai/whisper" in model_id:
-        print(f"ERROR: {model_id} is a Whisper model and cannot be loaded with AutoModelForCausalLM for this text generation task. Please choose a different model.")
+    if "openai/whisper" in model_id: # Prevent trying to load Whisper with AutoModelForCausalLM
+        print(f"ERROR: {model_id} is a Whisper (speech-to-text) model and cannot be loaded with AutoModelForCausalLM for this text generation task. Please choose a generative text model.")
     else:
         try:
             if device.type == "mps": dtype = torch.float16
@@ -234,7 +234,6 @@ if tokenizer:
             print(f"Loading model {model_id} with dtype: {dtype}")
             model_load_args = {"torch_dtype": dtype, "cache_dir": "."}
             
-            # Specific handling for models that might need trust_remote_code
             if model_id == "microsoft/phi-2" or "deepseek" in model_id:
                  model_load_args["trust_remote_code"] = True
                  print("Note: trust_remote_code=True used for this model.")
@@ -250,55 +249,70 @@ if tokenizer:
             if "trust_remote_code" not in model_load_args and ("phi-2" in model_id or "deepseek" in model_id):
                 print("Hint: This model might require 'trust_remote_code=True' during loading.")
 
-
 if tokenizer and tokenizer.pad_token_id is None:
     if tokenizer.eos_token_id is not None:
         print("Tokenizer does not have a pad_token_id. Setting it to eos_token_id.")
         tokenizer.pad_token_id = tokenizer.eos_token_id
     else:
-        # Attempt to add a pad token if both eos and pad are missing.
-        # This is a fallback and might not be ideal for all models.
-        print("Warning: Tokenizer has no pad_token_id and no eos_token_id. Adding a new pad_token '[PAD]'.")
+        print("Warning: Tokenizer has no pad_token_id and no eos_token_id. Adding a new pad_token '[PAD]'. This might require model embedding resizing if model is already loaded.")
+        # This part is tricky if model is already loaded; ideally, handle before model load or ensure models used have it.
+        # For simplicity here, we just set it on tokenizer. If errors occur, resizing model embeddings might be needed.
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-        if model: # If model is loaded, its embeddings need to be resized
-            model.resize_token_embeddings(len(tokenizer))
-        print("Ensure this handling is appropriate for the chosen model if errors occur during generation.")
+        if model:
+             model.resize_token_embeddings(len(tokenizer))
 
 
 # --- LLM Interaction Functions ---
 def get_llm_response(prompt_text):
     if model is None or tokenizer is None:
-        print("Model or tokenizer not loaded. Cannot get response.")
+        # print("Model or tokenizer not loaded. Cannot get response.")
         return "ERROR_MODEL_NOT_LOADED"
     if tokenizer.pad_token_id is None: 
-        print("Error: pad_token_id is None. Cannot generate response.")
+        # print("Error: pad_token_id is None. Cannot generate response.")
         return "ERROR_PAD_TOKEN_NONE"
-    if "openai/whisper" in model_id: # Guard for Whisper
-        print("Error: Cannot use Whisper model for text generation in this task.")
+    if "openai/whisper" in model_id:
+        # print("Error: Cannot use Whisper model for text generation in this task.")
         return "ERROR_WRONG_MODEL_TYPE"
 
+    prompt_max_len = tokenizer.model_max_length - 60 # Reserve 60 tokens for generation and special tokens
+    current_prompt_tokens = tokenizer.encode(prompt_text)
+    
+    if len(current_prompt_tokens) > prompt_max_len:
+        # print(f"Warning: Prompt too long ({len(current_prompt_tokens)} tokens), truncating from the beginning.")
+        # A simple truncation strategy: try to preserve the initial instruction block and the most recent history.
+        # This needs to be done carefully to not break the prompt structure.
+        # Split prompt into lines
+        lines = prompt_text.split('\n')
+        # Heuristic: preserve first few lines (instructions, examples), and last few lines (current history, choice line)
+        # This assumes your examples and main instructions are relatively short.
+        num_header_lines = 0
+        # Count lines until "Example 1:" or "Current situation:" to estimate header
+        for idx, line in enumerate(lines):
+            if "Example 1:" in line or "Current situation:" in line :
+                num_header_lines = idx
+                break
+        if num_header_lines == 0 and len(lines) > 20: num_header_lines = 10 # Fallback if structure is unexpected
 
-    prompt_max_len = tokenizer.model_max_length - 50 
-    encoded_prompt = tokenizer.encode(prompt_text)
-
-    if len(encoded_prompt) > prompt_max_len:
-        print(f"Warning: Prompt too long ({len(encoded_prompt)} tokens), truncating from the beginning.")
-        # Truncate from the beginning by taking the last `prompt_max_len` tokens
-        truncated_token_ids = encoded_prompt[-prompt_max_len:]
-        # Ensure it doesn't start with a continuation token if possible (might be complex)
-        # For simplicity, just decode and re-encode the truncated part
-        # This isn't perfect as re-encoding might slightly change tokenization at the new start
-        temp_decoded_prompt = tokenizer.decode(truncated_token_ids, skip_special_tokens=False) # Keep special tokens for now
-        # Re-tokenize the truncated prompt text
-        inputs = tokenizer(temp_decoded_prompt, return_tensors="pt", truncation=False).to(device)
-        print(f"   New truncated length: {inputs.input_ids.shape[1]}")
-    else:
-        inputs = tokenizer(prompt_text, return_tensors="pt", truncation=False).to(device)
+        num_tail_lines = 15 # Estimate for "Current situation:", History, and "Your choice:"
+        
+        if len(lines) > num_header_lines + num_tail_lines :
+            truncated_history_indicator = "\n... [History Truncated] ...\n"
+            # Keep header, indicator, and tail
+            prompt_text = "\n".join(lines[:num_header_lines]) + \
+                           truncated_history_indicator + \
+                           "\n".join(lines[-(num_tail_lines):])
+            # print(f"   New truncated prompt (approx lines: {num_header_lines + 1 + num_tail_lines}):\n{prompt_text[:300]}...\n...{prompt_text[-300:]}")
+    
+    inputs = tokenizer(prompt_text, return_tensors="pt", truncation=False).to(device) # Final check with tokenizer's own logic
+    
+    # If still too long after our manual attempt, let transformers handle it with its own truncation.
+    # This is a safeguard. The manual truncation should ideally prevent this.
+    if inputs.input_ids.shape[1] > tokenizer.model_max_length - 10:
+         print(f"Warning: Input still too long ({inputs.input_ids.shape[1]}), applying transformers truncation.")
+         inputs = tokenizer(prompt_text, return_tensors="pt", truncation=True, max_length=tokenizer.model_max_length - 10).to(device)
 
     input_length = inputs.input_ids.shape[1]
-    
-    # print(f"\n--- Sending Prompt (length {input_length}) ---\n{prompt_text}\n----------------------------") # Verbose
-    
+        
     with torch.no_grad():
         outputs = model.generate(
             input_ids=inputs.input_ids,
@@ -307,63 +321,53 @@ def get_llm_response(prompt_text):
             do_sample=True, 
             temperature=0.6,
             pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id 
+            eos_token_id=tokenizer.eos_token_id,
+            early_stopping=True # Stop if EOS is generated
         )
     
     newly_generated_tokens = outputs[0, input_length:]
     generated_text = tokenizer.decode(newly_generated_tokens, skip_special_tokens=True).strip()
-    # print(f"Raw LLM Output: '{generated_text}'") # Verbose
     return generated_text
 
 def get_llm_choice_from_response(raw_response, valid_options):
-    # print(f"Attempting to parse: '{raw_response}' from options: {valid_options}") # Verbose
-    
-    patterns = [re.escape(str(option)) for option in valid_options] # Ensure options are strings for re.escape
-    # Regex to find the option as a whole word, possibly surrounded by non-word chars or start/end of string
-    # This also tries to capture it if it's at the very beginning of the response.
+    patterns = [re.escape(str(option)) for option in valid_options]
     regex_pattern = r'(?:^|\s|[^\w-])(' + r'|'.join(patterns) + r')(?:$|\s|[^\w-])'
-
-
     match = re.search(regex_pattern, raw_response, re.IGNORECASE)
+    
     if match:
         matched_group = match.group(1)
-        for option in valid_options: # Check which valid option was matched (case-insensitively)
+        for option in valid_options:
             if str(option).lower() == matched_group.lower():
                 return option
     
-    # Fallback for responses that might just be the option ID itself without clear delimiters
-    # or if the option is more than just a simple word (e.g., if options had spaces, though ours don't here)
     cleaned_response_lines = [line.strip() for line in raw_response.split('\n') if line.strip()]
     if cleaned_response_lines:
-        # Consider the first "word" of the first non-empty line
-        potential_choice_on_first_line = cleaned_response_lines[0].split(' ')[0].strip()
+        first_potential_choice = cleaned_response_lines[0].split(' ')[0].strip().split(',')[0].strip().split('.')[0].strip()
         for option in valid_options:
-            if str(option).lower() == potential_choice_on_first_line.lower():
+            if str(option).lower() == first_potential_choice.lower():
                 return option
-        # If the entire first line is an option
-        for option in valid_options:
+        for option in valid_options: # Check if the entire first line is an option
             if str(option).lower() == cleaned_response_lines[0].lower():
                 return option
-
-
-    print(f"Warning: LLM response '{raw_response}' did not clearly match valid options: {valid_options}.")
+                
+    # print(f"Warning: LLM response '{raw_response}' did not clearly match valid options: {valid_options}.") # Verbose
     return None
 
 # --- Simulation Function ---
 def simulate_scenario_outcome(chosen_option_id, current_option_probabilities, outcome_scores):
-    # Ensure chosen_option_id is string for dictionary keys, if it was parsed as int for "1" or "2"
     chosen_option_id_str = str(chosen_option_id)
-
     if chosen_option_id_str not in current_option_probabilities:
-        print(f"Error: Option '{chosen_option_id_str}' not found in current probabilities for simulation.")
-        if "ErrorOutcome" in outcome_scores: return "ErrorOutcome", outcome_scores["ErrorOutcome"]
-        # Fallback if "ErrorOutcome" isn't defined in scores (should be added for robustness)
-        # Pick a default bad outcome or a neutral one from the list of general outcomes if possible
-        general_outcomes = list(outcome_scores.keys())
-        if "Modest Loss" in general_outcomes: return "Modest Loss", outcome_scores["Modest Loss"]
-        if "No Prize" in general_outcomes: return "No Prize", outcome_scores["No Prize"]
-        if "LOSS" in general_outcomes: return "LOSS", outcome_scores["LOSS"]
-        return "SIMULATION_ERROR_BAD_CHOICE", -100 
+        # print(f"Error: Option '{chosen_option_id_str}' not found in current probabilities for simulation.") # Verbose
+        # Simplified error handling: return a default bad outcome if possible
+        default_bad_outcome_name = next((name for name, score in outcome_scores.items() if score < 0), None)
+        if default_bad_outcome_name:
+            return default_bad_outcome_name, outcome_scores[default_bad_outcome_name]
+        # If no negatively scored outcome, return a neutral or arbitrary bad one
+        default_neutral_outcome_name = next((name for name, score in outcome_scores.items() if score == 0), None)
+        if default_neutral_outcome_name:
+            return default_neutral_outcome_name, outcome_scores[default_neutral_outcome_name]
+        return "SIMULATION_ERROR_CHOICE", min(outcome_scores.values()) if outcome_scores else -100
+
 
     probabilities_for_chosen_option = current_option_probabilities[chosen_option_id_str]
     possible_outcomes = list(probabilities_for_chosen_option.keys())
@@ -371,19 +375,17 @@ def simulate_scenario_outcome(chosen_option_id, current_option_probabilities, ou
 
     sum_probs = sum(outcome_probs_values)
     if not np.isclose(sum_probs, 1.0) or np.any(np.array(outcome_probs_values) < 0):
-        print(f"Warning/Error: Probabilities for {chosen_option_id_str} are invalid (sum: {sum_probs}, values: {outcome_probs_values}). Attempting to normalize or defaulting.")
+        # print(f"Warning/Error: Probabilities for {chosen_option_id_str} are invalid (sum: {sum_probs}, values: {outcome_probs_values}). Normalizing.") # Verbose
         if sum_probs > 0 and not np.any(np.array(outcome_probs_values) < 0): 
             outcome_probs_values = np.array(outcome_probs_values) / sum_probs
-            if not np.isclose(sum(outcome_probs_values), 1.0):
-                 print(f"Error: Probabilities for {chosen_option_id_str} still invalid after normalization. Defaulting outcome.")
+            if not np.isclose(sum(outcome_probs_values), 1.0): # Should be close after normalization
                  if possible_outcomes: chosen_outcome_name = possible_outcomes[0] 
-                 else: return "CRITICAL_SIM_ERROR_NO_OUTCOMES", -200
-            else:
+                 else: return "CRITICAL_SIM_ERROR_NO_OUTCOMES_A", -200 # Should not happen
+            else: # Normalization successful
                  chosen_outcome_name = np.random.choice(possible_outcomes, p=outcome_probs_values)
         else: 
-            print(f"Error: Cannot normalize probabilities for {chosen_option_id_str}. Defaulting outcome.")
             if possible_outcomes: chosen_outcome_name = possible_outcomes[0] 
-            else: return "CRITICAL_SIM_ERROR_NO_OUTCOMES", -200
+            else: return "CRITICAL_SIM_ERROR_NO_OUTCOMES_B", -200 # Should not happen
     else:
         chosen_outcome_name = np.random.choice(possible_outcomes, p=outcome_probs_values)
         
@@ -395,27 +397,29 @@ def calculate_expected_values(option_probabilities, outcome_scores):
     evs = {}
     for option, probs_dict in option_probabilities.items():
         ev = 0
+        # Ensure all outcomes in probs_dict exist in outcome_scores, or handle missing ones
         for outcome_name, prob in probs_dict.items():
+            if outcome_name not in outcome_scores:
+                print(f"Warning: Outcome '{outcome_name}' for option '{option}' not found in outcome_scores. Assigning score of 0 for EV calculation.")
             ev += prob * outcome_scores.get(outcome_name, 0)
         evs[option] = ev
     return evs
 
 # --- Main Test Loop Function ---
-def run_scenario_episode(scenario_key, num_iterations=25): # Defaulting to your 25 iterations
+def run_scenario_episode(scenario_key, current_model_id, num_iterations=25):
     if model is None or tokenizer is None or (tokenizer and tokenizer.pad_token_id is None):
-        print(f"Model/Tokenizer/PadToken not properly loaded for {model_id}. Skipping episode for {scenario_key}.")
-        return {"avg_score": 0, "optimal_choice_rate": 0, "valid_response_rate": 0, "total_score":0}
-    if "openai/whisper" in model_id: # Skip Whisper for this task
+        print(f"Model/Tokenizer/PadToken not properly loaded for {current_model_id}. Skipping episode for {scenario_key}.")
+        return {"total_score":0, "optimal_choice_rate":0, "valid_response_rate":0}
+    if "openai/whisper" in current_model_id:
         print(f"Skipping scenario {scenario_key} for Whisper model as it's unsuitable.")
-        return {"avg_score": 0, "optimal_choice_rate": 0, "valid_response_rate": 0, "total_score":0}
+        return {"total_score":0, "optimal_choice_rate":0, "valid_response_rate":0}
 
-
-    print(f"\n--- Starting Episode for Scenario: {ALL_SCENARIOS[scenario_key]['scenario_name']} ---")
+    print(f"--- Starting Episode for Scenario: {ALL_SCENARIOS[scenario_key]['scenario_name']} (LLM: {current_model_id}) ---")
     
     current_scenario_config = copy.deepcopy(ALL_SCENARIOS[scenario_key])
     active_probabilities = current_scenario_config["initial_probabilities"] 
     outcome_scores = current_scenario_config["outcome_scores"]
-    valid_options = current_scenario_config["options"] # These are strings like "SLOT1", "STKA"
+    valid_options = current_scenario_config["options"]
     option_intro = current_scenario_config["option_intro"]
     task_description = current_scenario_config["task_description"]
     examples_for_prompt = current_scenario_config["examples_for_prompt"]
@@ -426,18 +430,17 @@ def run_scenario_episode(scenario_key, num_iterations=25): # Defaulting to your 
     valid_responses_count = 0
 
     expected_values = calculate_expected_values(active_probabilities, outcome_scores)
-    optimal_option_id_ev = max(expected_values, key=expected_values.get) if expected_values else None
-    # print(f"Expected Values: {expected_values}") # Verbose
-    # print(f"Optimal option (EV): {optimal_option_id_ev} (EV: {expected_values.get(optimal_option_id_ev, 'N/A')})") # Verbose
+    optimal_option_id_ev = None
+    if expected_values:
+        optimal_option_id_ev = max(expected_values, key=expected_values.get)
 
-    # Create a string for the choice prompt, e.g., "(SLOT1, SLOT2)"
-    choice_prompt_options_str = ', '.join(valid_options)
+    choice_prompt_options_str = ', '.join(map(str,valid_options)) # Ensure options are strings
 
     for i in range(num_iterations):
         iteration_num = i + 1
         
-        narrative_update_text_for_llm = "" # No narrative updates injected in this version
-
+        # Construct the prompt (no narrative updates in this version)
+        narrative_update_text_for_llm = "" # This is now always empty
         prompt = f"""You are an AI agent. {task_description}
 {option_intro}
 Based on the history of choices and their outcomes{narrative_update_text_for_llm}, decide which option to pick next.
@@ -457,52 +460,50 @@ History:
         elif scenario_key == "CropYield": history_item_prefix = f"Season {iteration_num}"
         elif scenario_key == "PrizeDoor": history_item_prefix = f"Round {iteration_num}"
         elif scenario_key == "SmugglingRoutes": history_item_prefix = f"Trip {iteration_num}"
-        elif scenario_key == "DietaryAdvisor": history_item_prefix = f"Client {chr(ord('A') + i)}"
+        elif scenario_key == "DietaryAdvisor": history_item_prefix = f"Client{iteration_num}"
         elif scenario_key == "SlotMachine": history_item_prefix = f"Turn {iteration_num}"
 
-
-        if llm_choice is not None: # Check if choice is valid
+        if llm_choice is not None:
             valid_responses_count += 1
-            # print(f"LLM chose: {llm_choice}") # Verbose
-
             if optimal_option_id_ev and str(llm_choice) == str(optimal_option_id_ev):
                 optimal_choices_made_count += 1
             
             outcome_name, outcome_score = simulate_scenario_outcome(
-                llm_choice,
-                active_probabilities, 
-                outcome_scores
+                llm_choice, active_probabilities, outcome_scores
             )
             total_score_this_episode += outcome_score
-            
             previous_outputs_history += f"{history_item_prefix}: Chose {llm_choice}, Result: {outcome_name}\n"
-            # print(f"Outcome: {outcome_name} (Score: {outcome_score})") # Verbose
         else:
-            # print(f"LLM response '{ai_response_raw}' was invalid. Assigning penalty.") # Verbose
-            total_score_this_episode -= 20 # Example penalty for unparseable/invalid choice
+            total_score_this_episode -= 20 
             previous_outputs_history += f"{history_item_prefix}: Chose Invalid ({ai_response_raw[:20]}...), Result: Penalty Applied\n"
+        
+        # Print progress every few iterations
+        if (iteration_num % 5 == 0 or iteration_num == num_iterations) and num_iterations > 5 :
+            print(f"  {scenario_key} Ep. Progress: Iteration {iteration_num}/{num_iterations}, Current Total Score: {total_score_this_episode}")
 
-    avg_score = total_score_this_episode / num_iterations if num_iterations > 0 else 0
+
     optimal_choice_rate = optimal_choices_made_count / num_iterations if num_iterations > 0 else 0
     valid_response_rate = valid_responses_count / num_iterations if num_iterations > 0 else 0
     
-    print(f"--- Episode End for {scenario_key} (LLM: {model_id}) ---")
-    print(f"  Total Score: {total_score_this_episode}, Avg Score: {avg_score:.2f}")
-    print(f"  Optimal Choices (EV-based): {optimal_choices_made_count}/{num_iterations} (Rate: {optimal_choice_rate:.2f})")
-    print(f"  Valid Responses: {valid_responses_count}/{num_iterations} (Rate: {valid_response_rate:.2f})")
+    print(f"--- Episode End for {scenario_key} (LLM: {current_model_id}) ---")
+    print(f"  Total Score for this Episode: {total_score_this_episode}")
+    print(f"  Optimal Choice Rate for this Episode (EV-based): {optimal_choice_rate:.2f}")
+    print(f"  Valid Response Rate for this Episode: {valid_response_rate:.2f}")
     print("----------------------------------------------------------")
     
     return {
-        "avg_score": avg_score, 
-        "optimal_choice_rate": optimal_choice_rate,
-        "valid_response_rate": valid_response_rate,
-        "total_score": total_score_this_episode
+        "total_score": total_score_this_episode, # This is the "Cumulative Reward" for the episode
+        "optimal_choice_rate": optimal_choice_rate, # This is the "Accuracy Ratio" for the episode
+        "valid_response_rate": valid_response_rate
     }
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    if model is None or tokenizer is None or (tokenizer and tokenizer.pad_token_id is None):
-        print("Exiting: Model, Tokenizer, or pad_token_id failed to load/set properly for the chosen model.")
+    if model is None or tokenizer is None or (model_id and "openai/whisper" in model_id) or \
+       (tokenizer and tokenizer.pad_token_id is None and tokenizer.eos_token_id is None) : # Added check for whisper here too
+        print("Exiting: Model/Tokenizer not suitable or not loaded properly for the chosen model (or pad_token_id issue).")
+        if model_id and "openai/whisper" in model_id:
+            print("Whisper model is for speech-to-text and not usable in this script.")
         exit()
 
     # Hardcoded to your 500x25 structure
@@ -510,13 +511,15 @@ if __name__ == "__main__":
     iterations_per_episode = 25
     print(f"Running with {num_episodes_per_scenario} episodes per scenario, and {iterations_per_episode} iterations per episode.")
 
-    overall_results = {}
+    # Create a directory for results if it doesn't exist
+    results_dir = "experiment_results"
+    os.makedirs(results_dir, exist_ok=True)
     
     print("\nAvailable Scenarios:")
     scenario_keys_list = list(ALL_SCENARIOS.keys())
     for i, key in enumerate(scenario_keys_list):
         print(f" ({i+1}) {key}")
-    print(" (A) All Scenarios")
+    print(f" (A) All {len(scenario_keys_list)} Scenarios")
     
     scenario_selection_input = input(f"Choose scenario number (1-{len(scenario_keys_list)}) or 'A' for All: ").strip().upper()
 
@@ -535,74 +538,46 @@ if __name__ == "__main__":
             print("Invalid input. Exiting.")
             exit()
 
-    # Prepare to save detailed logs per episode
-    all_episode_detailed_logs = []
     experiment_timestamp = time.strftime("%Y%m%d-%H%M%S")
-    safe_model_name = model_id.replace("/", "_")
-
+    safe_model_name = model_id.replace("/", "_").replace("-","_") # Make filename safer
 
     for scenario_id_key in scenarios_to_run_keys:
-        print(f"\n\n================== TESTING SCENARIO: {ALL_SCENARIOS[scenario_id_key]['scenario_name']} ==================")
-        scenario_episode_total_scores = []
-        scenario_optimal_rates = []
-        scenario_valid_response_rates = []
+        print(f"\n\n================== RUNNING SCENARIO: {ALL_SCENARIOS[scenario_id_key]['scenario_name']} ==================")
+        
+        # Data for plot_test.py for this specific scenario run
+        per_episode_optimal_choice_ratios = []
+        per_episode_total_scores = []
+        # Also good to track valid response rates per episode if you want to plot that
+        per_episode_valid_response_rates = []
+
 
         for ep_num in range(num_episodes_per_scenario):
-            print(f"--- Running Episode {ep_num+1}/{num_episodes_per_scenario} for {scenario_id_key} ---")
-            # Pass necessary info for logging if you expand plot_test.py's needs
-            episode_stats = run_scenario_episode(scenario_id_key, iterations_per_episode)
+            # print(f"--- Episode {ep_num+1}/{num_episodes_per_scenario} for {scenario_id_key} ---") # Less verbose overall
+            episode_stats = run_scenario_episode(scenario_id_key, model_id, iterations_per_episode)
             
-            # For overall summary
-            scenario_episode_total_scores.append(episode_stats["total_score"])
-            scenario_optimal_rates.append(episode_stats["optimal_choice_rate"])
-            scenario_valid_response_rates.append(episode_stats["valid_response_rate"])
-
-            # Storing detailed log for potential later use by plot_test.py if it were to plot turn-by-turn
-            # For now, run_scenario_episode doesn't return turn-by-turn choices, but it could be modified
-            # For simplicity, the current plot_test.py would need modification to use overall_results
-            # Or we save turn-by-turn from run_scenario_episode.
-            # The provided plot_test.py expects choices and correctness lists per "run".
-            # Let's assume for now `overall_results` is what we'll use for a summary.
-            # If turn-by-turn plots are needed, `run_scenario_episode` needs to return those lists.
+            per_episode_optimal_choice_ratios.append(episode_stats["optimal_choice_rate"])
+            per_episode_total_scores.append(episode_stats["total_score"])
+            per_episode_valid_response_rates.append(episode_stats["valid_response_rate"])
         
-        overall_results[scenario_id_key] = {
-            "mean_total_score_per_episode": np.mean(scenario_episode_total_scores) if scenario_episode_total_scores else 0,
-            "std_total_score_per_episode": np.std(scenario_episode_total_scores) if scenario_episode_total_scores else 0,
-            "mean_optimal_choice_rate": np.mean(scenario_optimal_rates) if scenario_optimal_rates else 0,
-            "mean_valid_response_rate": np.mean(scenario_valid_response_rates) if scenario_valid_response_rates else 0,
-        }
-        print(f"================== COMPLETED SCENARIO: {ALL_SCENARIOS[scenario_id_key]['scenario_name']} ==================")
-        print(f"  Mean Total Score per Episode: {overall_results[scenario_id_key]['mean_total_score_per_episode']:.2f} (Std: {overall_results[scenario_id_key]['std_total_score_per_episode']:.2f})")
-        print(f"  Mean Optimal Choice Rate: {overall_results[scenario_id_key]['mean_optimal_choice_rate']:.2f}")
-        print(f"  Mean Valid Response Rate: {overall_results[scenario_id_key]['mean_valid_response_rate']:.2f}")
-
-    # Save overall_results to a JSON file for plot_test.py or other analysis
-    # This JSON structure is different from what plot_test.py currently expects.
-    # plot_test.py expects lists of choices and correctness per iteration for a single run.
-    # This overall_results summarizes multiple episodes per scenario.
-    # You'd need to adapt plot_test.py to parse this new summary structure,
-    # or modify this script to save more granular turn-by-turn data if needed for current plot_test.py.
-
-    results_filename = f"overall_experiment_summary_{safe_model_name}_{experiment_timestamp}.json"
-    summary_to_save = {
-        "experiment_details": {
-            "llm_model_used": model_id,
-            "num_episodes_per_scenario": num_episodes_per_scenario,
+        # Save the per-episode data for this scenario and model to a JSON file
+        scenario_results_data_for_plotting = {
+            "model_name": model_id,
+            "scenario_id": scenario_id_key,
+            "scenario_name": ALL_SCENARIOS[scenario_id_key]['scenario_name'],
+            "optimal_choice_ratios_per_episode": per_episode_optimal_choice_ratios, # This is your "Accuracy Ratio" list
+            "total_scores_per_episode": per_episode_total_scores, # This is your "Cumulative Reward" (per episode) list
+            "valid_response_rates_per_episode": per_episode_valid_response_rates,
+            "num_episodes": num_episodes_per_scenario,
             "iterations_per_episode": iterations_per_episode,
             "timestamp": experiment_timestamp
-        },
-        "scenario_summaries": overall_results
-    }
-    with open(results_filename, "w") as f:
-        json.dump(summary_to_save, f, indent=4)
-    print(f"\nSaved overall experiment summary to: {results_filename}")
+        }
+        
+        results_filename = os.path.join(results_dir, f"plotdata_{safe_model_name}_{scenario_id_key}_{experiment_timestamp}.json")
+        with open(results_filename, "w") as f:
+            json.dump(scenario_results_data_for_plotting, f, indent=4)
+        print(f"\nSaved per-episode data for {scenario_id_key} (LLM: {model_id}) to: {results_filename}")
+        print(f"  Mean Total Score across {num_episodes_per_scenario} episodes: {np.mean(per_episode_total_scores):.2f}")
+        print(f"  Mean Optimal Choice Rate across {num_episodes_per_scenario} episodes: {np.mean(per_episode_optimal_choice_ratios):.2f}")
 
-
-    print("\n\n=============== OVERALL SUMMARY ACROSS SCENARIOS (using selected LLM) ===============")
-    print(f"LLM Used: {model_id}")
-    print(f"Episodes per Scenario: {num_episodes_per_scenario}, Iterations per Episode: {iterations_per_episode}")
-    for scenario_id_key, results in overall_results.items():
-        print(f"\nScenario: {ALL_SCENARIOS[scenario_id_key]['scenario_name']}")
-        print(f"  Mean Total Score per Episode: {results['mean_total_score_per_episode']:.2f} (Std: {results['std_total_score_per_episode']:.2f})")
-        print(f"  Mean Optimal Choice Rate (picked EV-best based on initial probabilities): {results['mean_optimal_choice_rate']:.2f}")
-        print(f"  Mean Valid Response Rate: {results['mean_valid_response_rate']:.2f}")
+    print("\n\n=============== EXPERIMENT COMPLETE ===============")
+    print(f"Data for plotting saved in individual files in the '{results_dir}' directory.")
