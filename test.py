@@ -480,7 +480,9 @@ History:
         else:
             current_score = -20 
             total_score_this_run += current_score 
+            print(f"\n>>>> DEBUG: Invalid raw response was: '{ai_response_raw}' <<<<\n")
             previous_outputs_history += f"{history_item_prefix}: Chose Invalid ({ai_response_raw[:15].replace(chr(10), '')}...), Result: Penalty\n"
+
         
         choices_this_run_log.append(str(llm_choice) if llm_choice is not None else "INVALID")
         scores_this_run_log.append(current_score)
