@@ -338,27 +338,27 @@ def get_llm_response(prompt_text):
     return generated_text
 
 def get_llm_choice_from_response(raw_response, valid_options):
-    patterns = [re.escape(str(option)) for option in valid_options] 
-    regex_pattern = r'(?:^|\s|[^\w-])(' + r'|'.join(patterns) + r')(?:$|\s|[^\w-])' # Handles non-alphanumeric boundaries
-    match = re.search(regex_pattern, raw_response, re.IGNORECASE)
-    
-    if match:
-        matched_group = match.group(1)
+    # Clean the response by stripping leading/trailing whitespace
+    cleaned_response = raw_response.strip()
+
+    # First, check if any line is an exact match for an option (very common)
+    for line in cleaned_response.split('\n'):
+        # Clean each line as well
+        potential_choice = line.strip()
         for option in valid_options:
-            if str(option).lower() == matched_group.lower():
-                return option
-    
-    cleaned_response_lines = [line.strip() for line in raw_response.split('\n') if line.strip()]
-    if cleaned_response_lines:
-        first_word_match = re.match(r'([a-zA-Z0-9_]+)', cleaned_response_lines[0]) # Match alphanumeric + underscore
-        if first_word_match:
-            potential_choice_on_first_line = first_word_match.group(1)
-            for option in valid_options:
-                if str(option).lower() == potential_choice_on_first_line.lower():
-                    return option
-        for option in valid_options: # Check if the entire first line is an option
-            if str(option).lower() == cleaned_response_lines[0].lower():
-                return option
+            if str(option).lower() == potential_choice.lower():
+                return option # Found an exact match on a line
+
+    # If no exact line match, search for the option as a whole word anywhere in the response
+    # This is very forgiving and handles cases like "My choice is SLOT2."
+    for option in valid_options:
+        # The \b ensures we match whole words only (so 'CROP' doesn't match 'CROPX')
+        pattern = r'\b' + re.escape(str(option)) + r'\b'
+        match = re.search(pattern, cleaned_response, re.IGNORECASE)
+        if match:
+            return option # Found the first valid option in the text
+
+    # If we still haven't found anything, return None
     return None
 
 # --- Simulation Function ---
