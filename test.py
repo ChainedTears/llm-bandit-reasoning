@@ -273,7 +273,7 @@ if tokenizer and tokenizer.pad_token_id is None:
 
 
 # --- LLM Interaction Functions ---
-def get_llm_response(prompt_text):
+def get_llm_response(prompt_text): # The function signature stays the same
     if model is None or tokenizer is None:
         return "ERROR_MODEL_NOT_LOADED"
     if tokenizer.pad_token_id is None: 
@@ -281,46 +281,44 @@ def get_llm_response(prompt_text):
     if "openai/whisper" in model_id:
         return "ERROR_WRONG_MODEL_TYPE_FOR_TASK"
 
-    effective_max_len = tokenizer.model_max_length - 60 if hasattr(tokenizer, 'model_max_length') and tokenizer.model_max_length else 2048 - 60 
-    current_prompt_tokens = tokenizer.encode(prompt_text)
-    
-    if len(current_prompt_tokens) > effective_max_len:
-        lines = prompt_text.split('\n')
-        header_end_line_idx = 0
-        for idx, line in enumerate(lines):
-            if "Current situation:" in line:
-                header_end_line_idx = idx
-                break
-        if header_end_line_idx == 0 and len(lines) > 25: header_end_line_idx = 15
+    # --- Start of New Code ---
+    # The 'prompt_text' we receive is the full block of text. We need to parse it
+    # to build the structured message list that apply_chat_template needs.
 
-        num_tail_lines_to_keep = 20 
-        
-        if len(lines) > header_end_line_idx + num_tail_lines_to_keep + 3: 
-            header_part = "\n".join(lines[:header_end_line_idx])
-            current_situation_and_later = lines[header_end_line_idx:]
-            
-            history_marker_idx_in_tail = -1
-            for idx, line in enumerate(current_situation_and_later):
-                if line.strip() == "History:":
-                    history_marker_idx_in_tail = idx
-                    break
-            
-            if history_marker_idx_in_tail != -1:
-                lines_before_history = current_situation_and_later[:history_marker_idx_in_tail + 1]
-                actual_history_lines = current_situation_and_later[history_marker_idx_in_tail + 1 : -1] 
-                choice_line = current_situation_and_later[-1]
+    # 1. Separate the system prompt from the user prompt part.
+    # The system prompt is everything before "Current situation:".
+    try:
+        system_prompt_part, user_prompt_part = prompt_text.split("Current situation:", 1)
+        system_prompt_part = system_prompt_part.strip()
+        user_prompt_part = "Current situation:" + user_prompt_part # Add the header back
+    except ValueError:
+        # Fallback if the split string isn't found
+        system_prompt_part = "You are an AI agent making a choice based on history."
+        user_prompt_part = prompt_text
 
-                if len(actual_history_lines) > num_tail_lines_to_keep:
-                    truncated_history = actual_history_lines[-num_tail_lines_to_keep:]
-                    prompt_text = header_part + "\n" + \
-                                  "\n".join(lines_before_history) + "\n" + \
-                                  "... [History Truncated] ...\n" + \
-                                  "\n".join(truncated_history) + "\n" + \
-                                  choice_line
+    # 2. Construct the message list
+    messages = [
+        {"role": "system", "content": system_prompt_part},
+        {"role": "user", "content": user_prompt_part.strip()}
+    ]
+
+    # 3. Apply the chat template
+    # This is the magic line that formats the prompt correctly for the model.
+    # We set tokenize=False because we want the formatted string, not the tokens yet.
+    # add_generation_prompt=True adds the special tokens to signal the assistant should start talking.
+    formatted_prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+    # --- End of New Code ---
+
+    # The rest of the function proceeds as before, but using `formatted_prompt`
+    effective_max_len = tokenizer.model_max_length - 60 if hasattr(tokenizer, 'model_max_length') and tokenizer.model_max_length else 2048 - 60
     
-    inputs = tokenizer(prompt_text, return_tensors="pt", truncation=True, max_length=effective_max_len).to(device)
+    inputs = tokenizer(formatted_prompt, return_tensors="pt", truncation=True, max_length=effective_max_len).to(device)
     input_length = inputs.input_ids.shape[1]
-        
+    
     with torch.no_grad():
         outputs = model.generate(
             input_ids=inputs.input_ids,
@@ -330,7 +328,6 @@ def get_llm_response(prompt_text):
             temperature=0.6,
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id
-            # Removed early_stopping=True
         )
     
     newly_generated_tokens = outputs[0, input_length:]
