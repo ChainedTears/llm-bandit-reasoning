@@ -3,86 +3,45 @@ import sys
 import json
 import time
 import matplotlib.pyplot as plt
-import numpy as np
 
-def plot_scenario_run_results(data_from_json_file, output_dir_for_plots):
-    model_name = data_from_json_file.get("model_name", "unknown_model")
-    scenario_display_name = data_from_json_file.get("scenario_name", "unknown_scenario")
-    scenario_id = data_from_json_file.get("scenario_id", "unknown_id") 
-    
-    # These lists contain one value per "run" (sampling iteration)
-    optimal_ratios_all_runs = data_from_json_file.get("optimal_choice_ratios_per_run", []) # Key changed
-    total_scores_all_runs = data_from_json_file.get("total_scores_per_run", []) # Key changed
+def plot_results(choices, correctness, model_name="model"):
+    output_dir = "plot_results"
+    os.makedirs(output_dir, exist_ok=True)
 
-    num_runs_completed = data_from_json_file.get("num_runs", len(optimal_ratios_all_runs)) # Key changed
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    safe_model_name = model_name.replace("/", "_")
 
-    if not optimal_ratios_all_runs or not total_scores_all_runs:
-        print(f"Error: Data for 'optimal_choice_ratios_per_run' or 'total_scores_per_run' missing/empty for {scenario_display_name} with {model_name}.")
-        return
+    iterations = list(range(1, len(choices) + 1))
 
-    min_len = min(len(optimal_ratios_all_runs), len(total_scores_all_runs))
-    if min_len == 0: 
-        print(f"No data points to plot for {scenario_display_name} with {model_name}.")
-        return
-    
-    optimal_ratios_all_runs = optimal_ratios_all_runs[:min_len]
-    total_scores_all_runs = total_scores_all_runs[:min_len]
-    num_runs_to_plot = min_len
-    run_indices = list(range(1, num_runs_to_plot + 1)) # X-axis is now "Run Index" or "Sampling Iteration Index"
-
-    safe_model_name = model_name.replace("/", "_").replace("-","_")
-    safe_scenario_id = scenario_id.replace(" ", "_").replace("/", "_")
-    plot_timestamp = data_from_json_file.get("timestamp", time.strftime("%Y%m%d-%H%M%S")) 
-    
-    # --- Plot 1: Optimal Choice Ratio Per Run Over Sampling Iterations ---
-    plt.figure(figsize=(12, 6))
-    plt.plot(run_indices, optimal_ratios_all_runs, linestyle='-', color='blue', linewidth=0.8, label='Optimal Choice Ratio per Run')
-    
-    if num_runs_to_plot >= 20: 
-        moving_avg_window = min(50, num_runs_to_plot // 10 if num_runs_to_plot // 10 >= 10 else 10) 
-        if moving_avg_window > 0:
-            moving_avg_optimal = np.convolve(optimal_ratios_all_runs, np.ones(moving_avg_window)/moving_avg_window, mode='valid')
-            moving_avg_x_optimal = run_indices[moving_avg_window-1:]
-            if len(moving_avg_x_optimal) == len(moving_avg_optimal):
-                 plt.plot(moving_avg_x_optimal, moving_avg_optimal, color='orange', linestyle='--', linewidth=2, label=f'{moving_avg_window}-Run Moving Avg.')
-
-    plt.xlabel(f'Sampling Iteration Index (Total: {num_runs_completed})') # Changed X-axis label
-    plt.ylabel('Optimal Choice Ratio (per Run)') # Changed Y-axis label
-    plt.title(f'Optimal Choice Ratio per Run: {scenario_display_name}\nModel: {model_name}')
-    plt.ylim(0, 1.05)
+    # Plot 1: Choices Over Iterations
+    plt.figure(figsize=(10, 4))
+    plt.step(iterations, choices, where='post')
+    plt.xlabel('Iteration')
+    plt.ylabel('AI Choice (Slot Machine)')
+    plt.title(f'AI Slot Machine Choices Over Iterations\nModel: {model_name}')
+    plt.yticks(sorted(set(choices)))
     plt.grid(True)
-    plt.legend()
-    optimal_ratio_path = os.path.join(output_dir_for_plots, f"OptimalRatio_PerRun_{safe_model_name}_{safe_scenario_id}_{plot_timestamp}.png")
-    plt.savefig(optimal_ratio_path)
+    choice_path = os.path.join(output_dir, f"choices_plot_{safe_model_name}_{timestamp}.png")
+    plt.savefig(choice_path)
     plt.close()
-    print(f"Saved optimal choice ratio per run plot to: {optimal_ratio_path}")
+    print(f"Saved choices plot to: {choice_path}")
 
-    # --- Plot 2: Total Score Per Run Over Sampling Iterations ---
-    plt.figure(figsize=(12, 6))
-    plt.plot(run_indices, total_scores_all_runs, linestyle='-', color='red', linewidth=0.8, label='Total Score per Run')
-
-    if num_runs_to_plot >= 20:
-        moving_avg_window = min(50, num_runs_to_plot // 10 if num_runs_to_plot // 10 >= 10 else 10)
-        if moving_avg_window > 0:
-            moving_avg_scores = np.convolve(total_scores_all_runs, np.ones(moving_avg_window)/moving_avg_window, mode='valid')
-            moving_avg_scores_x = run_indices[moving_avg_window-1:]
-            if len(moving_avg_scores_x) == len(moving_avg_scores):
-                 plt.plot(moving_avg_scores_x, moving_avg_scores, color='green', linestyle='--', linewidth=2, label=f'{moving_avg_window}-Run Moving Avg.')
-
-    plt.xlabel(f'Sampling Iteration Index (Total: {num_runs_completed})') # Changed X-axis label
-    plt.ylabel('Total Score (per Run)') # Changed Y-axis label
-    plt.title(f'Total Score per Run: {scenario_display_name}\nModel: {model_name}')
+    # Plot 2: Correctness Over Iterations
+    plt.figure(figsize=(10, 4))
+    plt.plot(iterations, correctness, marker='o')
+    plt.xlabel('Iteration')
+    plt.ylabel('Cumulative Correct Choice Ratio')
+    plt.title(f"AI's Correct Choice Ratio Over Iterations\nModel: {model_name}")
+    plt.ylim(0, 1)
     plt.grid(True)
-    plt.legend()
-    total_score_path = os.path.join(output_dir_for_plots, f"TotalScore_PerRun_{safe_model_name}_{safe_scenario_id}_{plot_timestamp}.png")
-    plt.savefig(total_score_path)
+    correctness_path = os.path.join(output_dir, f"correctness_plot_{safe_model_name}_{timestamp}.png")
+    plt.savefig(correctness_path)
     plt.close()
-    print(f"Saved total score per run plot to: {total_score_path}")
+    print(f"Saved correctness plot to: {correctness_path}")
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python plot_test.py <path_to_plotdata_JSON_file.json>")
-        print("This script expects a JSON file generated by test.py for a specific model and scenario.")
+        print("Usage: python plot_test.py <results_file.json>")
         sys.exit(1)
 
     results_file = sys.argv[1]
@@ -90,13 +49,18 @@ def main():
         print(f"File not found: {results_file}")
         sys.exit(1)
 
-    base_plot_output_dir = "plots_from_experiments" 
-    os.makedirs(base_plot_output_dir, exist_ok=True)
-
     with open(results_file, "r") as f:
-        data_for_one_run_set = json.load(f) # Expects a single dict from one scenario/model run set
-    
-    plot_scenario_run_results(data_for_one_run_set, base_plot_output_dir)
+        data = json.load(f)
+
+    model_name = data.get("model", "unknown_model")
+    choices = data.get("choices", [])
+    correctness = data.get("correctness", [])
+
+    if not choices or not correctness:
+        print("Error: 'choices' or 'correctness' data missing or empty in JSON.")
+        sys.exit(1)
+
+    plot_results(choices, correctness, model_name)
 
 if __name__ == "__main__":
     main()
