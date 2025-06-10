@@ -440,14 +440,11 @@ def run_scenario_episode(scenario_key_arg, current_model_id_for_run_arg, current
         turn_num = i + 1
         
         narrative_update_text_for_llm = "" 
-        prompt = f"""You are an AI agent. {task_description}
-{option_intro}
-Based on the history of choices and their outcomes{narrative_update_text_for_llm}, decide which option to pick next.
-Output ONLY the option identifier ({choice_prompt_options_str}). Do not include any other words, explanations, or formatting.
+        prompt = f"""Follow the examples to provide your choice. Output ONLY the option name.
 
 {examples_for_prompt}
 
-Current situation:
+Current Situation:
 History:
 {previous_outputs_history}Your choice ({choice_prompt_options_str}):"""
 
