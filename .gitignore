@@ -1,0 +1,14 @@
+# Ignore Hugging Face model files
+*.bin
+*.safetensors
+config.json
+generation_config.json
+merges.txt
+special_tokens_map.json
+tokenizer_config.json
+tokenizer.json
+vocab.json
+
+# Ignore python cache
+__pycache__/
+*.pyc
