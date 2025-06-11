@@ -164,11 +164,11 @@ def get_response(prompt_text):
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
     if choice == "PCR": # 55% success rate 
-        return "success" if random_number < 55 else "lost"
+        return "success" if random_number < 55 else "fail"
     if choice == "Antigen": # 30% success rate 
-        return "success" if random_number < 30 else "lost"
-    if choice == "NAAT" # 70% success rate (objectively better)
-        return "success" if random_number < 70 else "lost"
+        return "success" if random_number < 30 else "fail"
+    if choice == "NAAT": # 70% success rate (objectively better)
+        return "success" if random_number < 70 else "fail"
     print(f"Error in bandit_simulation with choice: {choice}")
     return "error"
 
