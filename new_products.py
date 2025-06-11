@@ -261,24 +261,30 @@ Your choice (Mop or Rake or Vacuum):"""  # The final line cues the model
         
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
-        match = re.match(r'^\s*(Mop|Rake|Vacuum)\b', ai_response_raw, re.IGNORECASE)
-        if match:
-            ai_choice = match.group(1).capitalize()  # Normalize to consistent casing
+        cleaned_response = ai_response_raw.strip().lower()
+
+        # Check for keywords and convert to single letter
+        if "mop" in cleaned_response:
+            ai_choice = "M"
+        elif "rake" in cleaned_response:
+            ai_choice = "R"
+        elif "vacuum" in cleaned_response:
+            ai_choice = "V"
         else:
-            # Fallback search anywhere in the response
-            match_fallback = re.search(r'\b(Mop|Rake|Vacuum)\b', ai_response_raw, re.IGNORECASE)
-            if match_fallback:
-                ai_choice = match_fallback.group(1).capitalize()
-                print(f"Used fallback regex to find choice: {ai_choice}")
-
-
-        if ai_choice not in ["Mop", "Rake", "Vacuum"]:
             print(f"AI did not output a clear Mop, Rake, or Vacuum. Asking again...")
-            while ai_choice not in ["Mop", "Rake", "Vacuum"]:
+            while True:
                 ai_response_raw = get_response(prompt)
-                match = re.match(r'^\s*(Mop|Rake|Vacuum)\b', ai_response_raw, re.IGNORECASE)
-                if match:
-                    ai_choice = match.group(1).capitalize()
+                print(f"Retry Raw AI Response: {ai_response_raw}")
+                cleaned_response = ai_response_raw.strip().lower()
+                if "mop" in cleaned_response:
+                    ai_choice = "M"
+                    break
+                elif "rake" in cleaned_response:
+                    ai_choice = "R"
+                    break
+                elif "vacuum" in cleaned_response:
+                    ai_choice = "V"
+                    break
 
 
 
@@ -287,12 +293,14 @@ Your choice (Mop or Rake or Vacuum):"""  # The final line cues the model
         total_ai_decisions += 1
 
         # Count as "correct" if AI selects NAAT (assumed to be the best-performing test overall)
-        if ai_choice == "Rake":
-            correct_ai_choices += 1
+        full_choice = {"M": "Mop", "R": "Rake", "V": "Vacuum"}[ai_choice]
 
-        result = bandit_simulation(ai_choice)
+        if full_choice == "Rake":
+            correct_ai_choices += 1
+        result = bandit_simulation(full_choice)
+        print(f"AI chose: {full_choice} product")
+        current_choice_str = f"Product {full_choice} {result}\n"
         cumulative_reward += result
-        current_choice_str = f"Product {ai_choice} {result}\n"
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
         global correct_counter
