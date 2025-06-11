@@ -106,7 +106,7 @@ def get_response(prompt_text):
             attention_mask=inputs.attention_mask, # Pass attention_mask
             max_new_tokens=3,      # CRITICAL: Keep low for single digit output
             do_sample=True,       # Greedy decoding; set to True with low temp if output is too repetitive
-            temperature=0.2,     # Use if do_sample=True
+            temperature=0,     # Use if do_sample=True
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
@@ -258,7 +258,7 @@ Your choice (Mop or Rake or Vacuum):"""  # The final line cues the model
 
         ai_response_raw = get_response(prompt)
         print(f"Raw AI Response: {ai_response_raw}")
-
+        
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
         match = re.match(r'^\s*(Mop|Rake|Vacuum)\b', ai_response_raw, re.IGNORECASE)
