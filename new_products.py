@@ -264,7 +264,7 @@ Your choice (Mop or Rake or Vacuum):"""
         
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
-        cleaned_response = ai_response_raw.strip().lower()
+        cleaned_response = ai_response_raw.strip().lower().split()[0]
 
         # Check for keywords and convert to single letter
         if "mop" in cleaned_response:
