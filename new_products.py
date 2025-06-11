@@ -106,7 +106,7 @@ def get_response(prompt_text):
             attention_mask=inputs.attention_mask, # Pass attention_mask
             max_new_tokens=3,      # CRITICAL: Keep low for single digit output
             do_sample=True,       # Greedy decoding; set to True with low temp if output is too repetitive
-            temperature=0.7,     # Use if do_sample=True
+            temperature=0.2,     # Use if do_sample=True
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
@@ -218,6 +218,7 @@ def main():
         prompt = f"""You are a decision-making agent. Your task is to choose the product that makes the most money (highest number).
 You MUST output ONLY ONE word, which must be exactly one of these three options (case sensitive): Mop, Rake, Vacuum.
 Do NOT output anything else — no explanations, no punctuation, no extra spaces, no newlines.
+Any deviation is an error.
 Based on the history of -10, 0, 5, 10, and 20, decide which product to choose next.
 
 Example 1:
