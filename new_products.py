@@ -218,13 +218,14 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to choose the product that makes the most money (highest number).
-You MUST output ONLY ONE word, which must be exactly one of these three options (case sensitive): Mop, Rake, Vacuum.
-Do NOT output anything else — no explanations, no punctuation, no extra spaces, no newlines.
-Any deviation is an error.
-Based on the history of -10, 0, 5, 10, and 20, decide which product to choose next.
+        prompt = f"""You are a decision-making agent. Choose the product with the highest expected reward based on past outcomes.
 
-Example 1:
+Respond with ONLY ONE of these exact words (case-sensitive): Mop, Rake, Vacuum.
+DO NOT explain your answer. DO NOT say anything else. DO NOT include punctuation, spaces, or newlines.
+Any extra text will be treated as an error.
+
+Examples:
+
 History:
 Product Mop 10
 Product Rake -10
@@ -234,7 +235,6 @@ Product Mop 5
 Product Rake 10
 Your choice (Mop or Rake or Vacuum): Mop
 
-Example 2:
 History:
 Product Vacuum 0
 Product Rake -10
@@ -244,7 +244,6 @@ Product Mop 0
 Product Rake 5
 Your choice (Mop or Rake or Vacuum): Vacuum
 
-Example 3:
 History:
 Product Rake 20
 Product Mop 5
@@ -254,10 +253,11 @@ Product Rake 20
 Product Mop -10
 Your choice (Mop or Rake or Vacuum): Rake
 
-Current situation:
+Now respond to this situation:
+
 History:
 {previous_outputs}
-Your choice (Mop or Rake or Vacuum):"""  # The final line cues the model
+Your choice (Mop or Rake or Vacuum):"""
 
         ai_response_raw = get_response(prompt)
         print(f"Raw AI Response: {ai_response_raw}")
