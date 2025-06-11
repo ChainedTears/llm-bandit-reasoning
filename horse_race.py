@@ -286,7 +286,7 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
         global correct_counter
-        correct_counter += 1 if result == "won" else 0
+        correct_counter += 1 if result == "1st" else 0
 
         print(f"Outcome: Machine {ai_choice} {result}.")
         current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
