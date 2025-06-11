@@ -270,7 +270,8 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
         print(f"AI chose: Machine {ai_choice}")
 
         total_ai_decisions += 1
-        # Count as "correct" if AI picks machine 2.
+        # Count as "correct" if AI picks Horse 2
+        result = bandit_simulation(ai_choice)
         if ai_choice == 2:
             correct_ai_choices += 1
         if result == "1st":
@@ -281,7 +282,6 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
             cumulative_reward += 0
 
 
-        result = bandit_simulation(ai_choice)
         current_choice_str = f"Slot Machine {ai_choice} {result}\n"
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
