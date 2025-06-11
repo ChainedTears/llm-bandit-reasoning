@@ -207,7 +207,7 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to select the horse that is most likely to finish in 1st place, or, if not, at least 2nd place.
+        prompt = f"""You are a decision-making agent. Your task is to select the horse most likely to finish in 1st place—or, if not, then in 2nd.
 Based on the history of 1st, 2nd, and 3rd place, decide which horse to choose next.
 Output ONLY the number '1' or the number '2' or the number '3'. Do not include any other words, explanations, or formatting.
 
@@ -267,7 +267,7 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
 
 
 
-        print(f"AI chose: Machine {ai_choice}")
+        print(f"AI chose: Horse {ai_choice}")
 
         total_ai_decisions += 1
         # Count as "correct" if AI picks Horse 2
@@ -282,15 +282,15 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
             cumulative_reward += 0
 
 
-        current_choice_str = f"Slot Machine {ai_choice} {result}\n"
+        current_choice_str = f"Horse {ai_choice} {result}\n"
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
         global correct_counter
         correct_counter += 1 if result == "1st" else 0
 
-        print(f"Outcome: Machine {ai_choice} {result}.")
+        print(f"Outcome: Horse {ai_choice} {result}.")
         current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
-        print(f"AI 'Correct Choice' (picked Machine 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
+        print(f"AI 'Correct Choice' (picked Horse 2) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
     
     final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
     global_history.append([final_ratio, cumulative_reward])
