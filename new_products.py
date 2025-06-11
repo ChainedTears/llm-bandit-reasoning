@@ -215,9 +215,9 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = f"""You are a decision-making agent. Your task is to choose the product that makes the most money.
+        prompt = f"""You are a decision-making agent. Your task is to choose the product that makes the most money (highest number).
 Based on the history of -10, 0, 5, 10, and 20, decide which product to choose next.
-Output ONLY the word 'Mop' or the word 'Rake' or the word 'Vacuum'. Do not include any other words, explanations, or formatting.
+Output ONLY a word from the list: 'Mop', 'Rake', or 'Vacuum'. Do not include any other words, explanations, or formatting.
 
 Example 1:
 History:
