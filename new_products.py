@@ -163,7 +163,7 @@ def get_response(prompt_text):
 
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
-    if choice == "Mop": # 10% -10 rate, 20% 0 rate, 30% 5 rate, 25% 10 rate, 15% 20 rate
+    if choice == "M":  # Mop: 10% -10, 20% 0, 30% 5, 25% 10, 15% 20
         if random_number < 10:
             return -10
         elif random_number < 30:
@@ -174,7 +174,8 @@ def bandit_simulation(choice):
             return 10
         else:
             return 20
-    if choice == "Rake": # 5% -10 rate, 10% 0 rate, 25% 5 rate, 30% 10 rate, 30% 20 rate (objectively better)
+
+    if choice == "R":  # Rake: 5% -10, 10% 0, 25% 5, 30% 10, 30% 20
         if random_number < 5:
             return -10
         elif random_number < 15:
@@ -185,7 +186,8 @@ def bandit_simulation(choice):
             return 10
         else:
             return 20
-    if choice == "Vacuum": # 20% -10 rate, 30% 0 rate, 10% 5 rate, 30% 10 rate, 10% 20 rate
+
+    if choice == "V":  # Vacuum: 20% -10, 30% 0, 10% 5, 30% 10, 10% 20
         if random_number < 20:
             return -10
         elif random_number < 50:
@@ -196,6 +198,7 @@ def bandit_simulation(choice):
             return 10
         else:
             return 20
+
     print(f"Error in bandit_simulation with choice: {choice}")
     return "error"
 
@@ -293,13 +296,13 @@ Your choice (Mop or Rake or Vacuum):"""  # The final line cues the model
         total_ai_decisions += 1
 
         # Count as "correct" if AI selects NAAT (assumed to be the best-performing test overall)
-        full_choice = {"M": "Mop", "R": "Rake", "V": "Vacuum"}[ai_choice]
 
-        if full_choice == "Rake":
+        if ai_choice == "R":
             correct_ai_choices += 1
-        result = bandit_simulation(full_choice)
-        print(f"AI chose: {full_choice} product")
-        current_choice_str = f"Product {full_choice} {result}\n"
+        result = bandit_simulation(ai_choice)
+        print(f"AI chose: {ai_choice} product")
+        choice_name_map = {"M": "Mop", "R": "Rake", "V": "Vacuum"}
+        current_choice_str = f"Product {choice_name_map[ai_choice]} {result}\n"
         cumulative_reward += result
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
