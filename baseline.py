@@ -252,12 +252,11 @@ Your choice (1 or 2):""" # The final line cues the model
         # Count as "correct" if AI picks machine 2.
         if ai_choice == 2:
             correct_ai_choices += 1
+        result = bandit_simulation(ai_choice)
+        if result == "won":
             cumulative_reward += 1
         else:
             cumulative_reward -= 1
-
-
-        result = bandit_simulation(ai_choice)
         current_choice_str = f"Slot Machine {ai_choice} {result}\n"
         previous_outputs += current_choice_str # Add current result to history for next turn
         previous_ai_choice = ai_choice # Update previous AI choice
