@@ -239,6 +239,16 @@ Product Mop 0
 Product Rake 5
 Your choice (Mop or Rake or Vacuum): Vacuum
 
+Example 3:
+History:
+Product Rake 20
+Product Mop 5
+Product Rake 10
+Product Vacuum -10
+Product Rake 20
+Product Mop -10
+Your choice (Mop or Rake or Vacuum): Rake
+
 Current situation:
 History:
 {previous_outputs}
