@@ -216,8 +216,9 @@ def main():
 
         # Construct the prompt: Strong instructions + Few-shot examples
         prompt = f"""You are a decision-making agent. Your task is to choose the product that makes the most money (highest number).
+You MUST output ONLY ONE word, which must be exactly one of these three options (case sensitive): Mop, Rake, Vacuum.
+Do NOT output anything else — no explanations, no punctuation, no extra spaces, no newlines.
 Based on the history of -10, 0, 5, 10, and 20, decide which product to choose next.
-Output ONLY a word from the list: 'Mop', 'Rake', or 'Vacuum'. Do not include any other words, explanations, or formatting.
 
 Example 1:
 History:
