@@ -6,7 +6,7 @@ from huggingface_hub import login
 import re
 
 login(token="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")
-
+previous_outputs = ""
 prompt_two = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
 Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
@@ -332,7 +332,7 @@ correct_counter = 0
 
 def main():
     cumulative_reward = 0
-    previous_outputs = ""
+    global previous_outputs
     correct_ai_choices, total_ai_decisions, previous_ai_choice = 0, 0, 1 # Metrics for AI
 
     max_iterations = 25 # Number of decisions the AI will make
