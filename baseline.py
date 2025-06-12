@@ -66,8 +66,8 @@ Slot Machine 2 won
 Slot Machine 3 lost
 Slot Machine 4 won
 Slot Machine 2 won
-Slot Machine 1 lost
-Your choice (1 or 2 or 3 or 4): 2
+Slot Machine 4 lost
+Your choice (1 or 2 or 3 or 4): 4
 
 Current situation:
 History:
@@ -81,7 +81,7 @@ Output ONLY the number 1 or 2 or 3 or 4 or 5. Do not include any other words or 
 Example:
 History:
 Slot Machine 1 lost
-Slot Machine 2 won
+Slot Machine 5 won
 Slot Machine 3 lost
 Slot Machine 4 won
 Slot Machine 2 won
