@@ -163,6 +163,7 @@ def get_response(prompt_text):
 
 def bandit_simulation(choice):
     random_number = secrets.randbelow(100)
+
     if choice == "M":  # Mop: 10% -10, 20% 0, 30% 5, 25% 10, 15% 20
         if random_number < 10:
             return -10
@@ -175,7 +176,7 @@ def bandit_simulation(choice):
         else:
             return 20
 
-    if choice == "R":  # Rake: 5% -10, 10% 0, 25% 5, 30% 10, 30% 20
+    if choice == "R":  # Rake
         if random_number < 5:
             return -10
         elif random_number < 15:
@@ -187,7 +188,7 @@ def bandit_simulation(choice):
         else:
             return 20
 
-    if choice == "V":  # Vacuum: 20% -10, 30% 0, 10% 5, 30% 10, 10% 20
+    if choice == "V":  # Vacuum
         if random_number < 20:
             return -10
         elif random_number < 50:
@@ -195,6 +196,30 @@ def bandit_simulation(choice):
         elif random_number < 60:
             return 5
         elif random_number < 90:
+            return 10
+        else:
+            return 20
+
+    if choice == "S":  # Sweeper: 15% -10, 25% 0, 25% 5, 20% 10, 15% 20
+        if random_number < 15:
+            return -10
+        elif random_number < 40:
+            return 0
+        elif random_number < 65:
+            return 5
+        elif random_number < 85:
+            return 10
+        else:
+            return 20
+
+    if choice == "D":  # Duster: 10% -10, 20% 0, 20% 5, 30% 10, 20% 20
+        if random_number < 10:
+            return -10
+        elif random_number < 30:
+            return 0
+        elif random_number < 50:
+            return 5
+        elif random_number < 80:
             return 10
         else:
             return 20
@@ -220,7 +245,7 @@ def main():
         # Construct the prompt: Strong instructions + Few-shot examples
         prompt = f"""You are a decision-making agent. Choose the product with the highest expected reward based on past outcomes.
 
-Respond with ONLY ONE of these exact words (case-sensitive): Mop, Rake, Vacuum.
+Respond with ONLY ONE of these exact words (case-sensitive): Mop, Rake, Vacuum, Sweeper, Duster.
 DO NOT explain your answer. DO NOT say anything else. DO NOT include punctuation, spaces, or newlines.
 Any extra text will be treated as an error.
 
@@ -267,14 +292,20 @@ Your choice (Mop or Rake or Vacuum):"""
         cleaned_response = ai_response_raw.strip().lower().split()[0]
 
         # Check for keywords and convert to single letter
+        cleaned_response = ai_response_raw.strip().lower().split()[0]
+
         if "mop" in cleaned_response:
             ai_choice = "M"
         elif "rake" in cleaned_response:
             ai_choice = "R"
         elif "vacuum" in cleaned_response:
             ai_choice = "V"
+        elif "sweeper" in cleaned_response:
+            ai_choice = "S"
+        elif "duster" in cleaned_response:
+            ai_choice = "D"
         else:
-            print(f"AI did not output a clear Mop, Rake, or Vacuum. Asking again...")
+            print(f"AI did not output a clear product. Asking again...")
             while True:
                 ai_response_raw = get_response(prompt)
                 print(f"Retry Raw AI Response: {ai_response_raw}")
@@ -287,6 +318,12 @@ Your choice (Mop or Rake or Vacuum):"""
                     break
                 elif "vacuum" in cleaned_response:
                     ai_choice = "V"
+                    break
+                elif "sweeper" in cleaned_response:
+                    ai_choice = "S"
+                    break
+                elif "duster" in cleaned_response:
+                    ai_choice = "D"
                     break
 
 
@@ -301,7 +338,13 @@ Your choice (Mop or Rake or Vacuum):"""
             correct_ai_choices += 1
         result = bandit_simulation(ai_choice)
         print(f"AI chose: {ai_choice} product")
-        choice_name_map = {"M": "Mop", "R": "Rake", "V": "Vacuum"}
+        choice_name_map = {
+            "M": "Mop",
+            "R": "Rake",
+            "V": "Vacuum",
+            "S": "Sweeper",
+            "D": "Duster"
+        }
         current_choice_str = f"Product {choice_name_map[ai_choice]} {result}\n"
         cumulative_reward += result
         previous_outputs += current_choice_str # Add current result to history for next turn
