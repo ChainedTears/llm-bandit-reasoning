@@ -113,16 +113,16 @@ model_dict = {
 
 start_match_pattern_dict = {
     prompt_two: r'^\s*([12])\b',
-    prompt_three: r'^\s*([123])\b',
-    prompt_four: r'^\s*([1234])\b',
-    prompt_five: r'^\s*([12345])\b'
+    prompt_three: r'^\s*([1-3])\b',
+    prompt_four: r'^\s*([1-4])\b',
+    prompt_five: r'^\s*([1-5])\b'
 }
 
 fallback_match_pattern_dict = {
     prompt_two: r'\b([12])\b',
-    prompt_three: r'\b([123])\b',
-    prompt_four: r'\b([1234])\b',
-    prompt_five: r'\b([12345])\b'
+    prompt_three: r'\b([1-3])\b',
+    prompt_four: r'\b([1-4])\b',
+    prompt_five: r'\b([1-5])\b'
 }
 
 valid_choices_dict = {
@@ -342,7 +342,7 @@ def main():
         print(f"------------- Iteration {iteration_num} -------------")
 
         # Construct the prompt: Strong instructions + Few-shot examples
-        prompt = prompt_type
+        prompt = prompt_type.format(previous_outputs=previous_outputs)
 
         ai_response_raw = get_response(prompt)
         print(f"Raw AI Response: {ai_response_raw}")
