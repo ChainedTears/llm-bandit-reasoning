@@ -40,15 +40,25 @@ prompt_three = f"""You are a decision-making agent. Your task is to choose the s
 Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3. Do not include any other words or formatting.
 
-Example:
+Example 1:
 History:
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 lost
 Slot Machine 1 lost
 Slot Machine 2 won
 Slot Machine 3 lost
+Your choice (1, 2, or 3): 1
+
+Example 2:
+History:
 Slot Machine 2 won
 Slot Machine 1 lost
+Slot Machine 3 won
 Slot Machine 2 lost
-Your choice (1 or 2 or 3): 2
+Slot Machine 3 lost
+Slot Machine 1 won
+Your choice (1, 2, or 3): 3
 
 Current situation:
 History:
@@ -59,15 +69,25 @@ prompt_four = f"""You are a decision-making agent. Your task is to choose the sl
 Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4. Do not include any other words or formatting.
 
-Example:
+Example 1:
 History:
 Slot Machine 1 lost
 Slot Machine 2 won
 Slot Machine 3 lost
-Slot Machine 4 won
-Slot Machine 2 won
 Slot Machine 4 lost
-Your choice (1 or 2 or 3 or 4): 4
+Slot Machine 2 lost
+Slot Machine 1 won
+Your choice (1, 2, 3, or 4): 2
+
+Example 2:
+History:
+Slot Machine 3 won
+Slot Machine 4 lost
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 3 won
+Slot Machine 4 won
+Your choice (1, 2, 3, or 4): 3
 
 Current situation:
 History:
@@ -78,15 +98,25 @@ prompt_five = f"""You are a decision-making agent. Your task is to choose the sl
 Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4 or 5. Do not include any other words or formatting.
 
-Example:
+Example 1:
 History:
-Slot Machine 1 lost
 Slot Machine 5 won
+Slot Machine 1 lost
 Slot Machine 3 lost
 Slot Machine 4 won
-Slot Machine 2 won
+Slot Machine 2 lost
 Slot Machine 5 lost
-Your choice (1 or 2 or 3 or 4 or 5): 2
+Your choice (1, 2, 3, 4, or 5): 5
+
+Example 2:
+History:
+Slot Machine 3 lost
+Slot Machine 1 won
+Slot Machine 2 won
+Slot Machine 4 lost
+Slot Machine 5 won
+Slot Machine 3 won
+Your choice (1, 2, 3, 4, or 5): 2
 
 Current situation:
 History:
