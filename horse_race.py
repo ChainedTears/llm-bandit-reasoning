@@ -187,7 +187,13 @@ def bandit_simulation(choice):
             return "2nd"
         else:  # 65–99
             return "3rd"
-
+    elif choice == 4: # 35% 1st, 55% 2nd, 10% 3rd
+        if random_number < 35: 
+            return "1st"
+        elif random_number < 90: #35-89
+            return "2nd"
+        else:
+            return "3rd"
     print(f"Error in bandit_simulation with choice: {choice}")
     return "error"
 
@@ -209,46 +215,46 @@ def main():
         # Construct the prompt: Strong instructions + Few-shot examples
         prompt = f"""You are a decision-making agent. Your task is to select the horse most likely to finish in 1st place—or, if not, then in 2nd.
 Based on the history of 1st, 2nd, and 3rd place, decide which horse to choose next.
-Output ONLY the number '1' or the number '2' or the number '3'. Do not include any other words, explanations, or formatting.
+Output ONLY the number '1' or the number '2' or the number '3' or the number '4'. Do not include any other words, explanations, or formatting.
 
 Example 1:
 History:
-Horse 1 1st
+Horse 4 1st
 Horse 3 3rd
 Horse 1 3rd
-Horse 1 2nd
+Horse 4 2nd
 Horse 2 1st
 Horse 3 1st
-Your choice (1 or 2 or 3): 2
+Your choice (1 or 2 or 3 or 4): 2
 
 Example 2:
 History:
 Horse 2 2nd
-Horse 3 1st
-Horse 2 3rd
+Horse 4 1st
+Horse 4 3rd
 Horse 2 2nd
 Horse 3 1st
 Horse 1 3rd
-Your choice (1 or 2 or 3): 3
+Your choice (1 or 2 or 3 or 4): 3
 
 Current situation:
 History:
 {previous_outputs}
-Your choice (1 or 2 or 3):""" # The final line cues the model
+Your choice (1 or 2 or 3 or 4):""" # The final line cues the model
 
         ai_response_raw = get_response(prompt)
         print(f"Raw AI Response: {ai_response_raw}")
 
         ai_choice = None
         # Stricter parsing: expect '1' or '2' at the beginning of the response
-        match = re.match(r'^\s*([1-3])\b', ai_response_raw)
+        match = re.match(r'^\s*([1-4])\b', ai_response_raw)
         if match:
             try:
                 ai_choice = int(match.group(1))
             except ValueError:
                 print(f"AI response parsing error (ValueError) from '{ai_response_raw}'.")
         else: # Fallback if no direct 1 or 2 found at the start
-            match_fallback = re.search(r'\b([1-3])\b', ai_response_raw) # Look for 1 or 2 anywhere
+            match_fallback = re.search(r'\b([1-4])\b', ai_response_raw) # Look for 1 or 2 anywhere
             if match_fallback:
                 try:
                     ai_choice = int(match_fallback.group(1))
@@ -257,11 +263,11 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
                     print(f"AI response parsing error (ValueError) on fallback from '{ai_response_raw}'.")
 
 
-        if ai_choice not in [1, 2, 3]:
+        if ai_choice not in [1, 2, 3, 4]:
             print(f"AI did not output a clear 1 or 2 or 3. Asking again...")
             while ai_choice not in [1, 2, 3]:
                 ai_response_raw = get_response(prompt)
-                match = re.match(r'^\s*([1-3])\b', ai_response_raw)
+                match = re.match(r'^\s*([1-4])\b', ai_response_raw)
                 if match:
                     ai_choice = int(match.group(1))
 
@@ -278,8 +284,6 @@ Your choice (1 or 2 or 3):""" # The final line cues the model
             cumulative_reward += 2
         elif result == "2nd":
             cumulative_reward += 1
-        elif result == "3rd":
-            cumulative_reward += 0
 
 
         current_choice_str = f"Horse {ai_choice} {result}\n"
