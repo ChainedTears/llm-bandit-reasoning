@@ -7,34 +7,39 @@ import re
 
 login(token="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")
 previous_outputs = ""
+previous_outputs = ""
+
 prompt_two = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
 Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
 
 Example 1:
+# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 2 wins/2 losses (50%). Machine 2 is better.
 History:
 Slot Machine 1 won
-Slot Machine 2 lost
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 2 won
 Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 1 lost
 Slot Machine 2 won
-Your choice (1 or 2): 1
+Your choice (1 or 2): 2
 
 Example 2:
+# Analysis: Machine 1 has 2 wins/1 loss (67%). Machine 2 has 1 win/2 losses (33%). Machine 1 is better.
 History:
+Slot Machine 2 lost
 Slot Machine 1 won
 Slot Machine 2 won
-Slot Machine 1 lost
-Slot Machine 2 lost
 Slot Machine 1 won
 Slot Machine 2 lost
-Your choice (1 or 2): 2
+Your choice (1 or 2): 1
 
 Current situation:
 History:
 {previous_outputs}
-Your choice (1 or 2):""" 
+Your choice (1 or 2):"""
 
 
 prompt_three = f"""You are a decision-making agent. Your task is to choose the slot machine most likely to win.
@@ -42,29 +47,35 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3. Do not include any other words or formatting.
 
 Example 1:
+# Analysis: Machine 3 has 3 wins/1 loss (75%). Machine 1 has 2 wins/1 loss (67%). Machine 2 has 0 wins/2 losses (0%). Machine 3 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 3 won
-Slot Machine 1 lost
-Slot Machine 2 won
-Slot Machine 3 lost
-Your choice (1, 2, or 3): 1
-
-Example 2:
-History:
-Slot Machine 2 won
 Slot Machine 1 won
-Slot Machine 3 lost
+Slot Machine 3 won
 Slot Machine 2 lost
-Slot Machine 1 lost
+Slot Machine 3 lost
 Slot Machine 3 won
 Your choice (1, 2, or 3): 3
+
+Example 2:
+# Analysis: Machine 1 has 2 wins/0 losses (100%). Machine 3 has 2 wins/1 loss (67%). Machine 2 has 1 win/2 losses (33%). Machine 1 is the best.
+History:
+Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 3 won
+Slot Machine 2 lost
+Slot Machine 3 lost
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 won
+Your choice (1, 2, or 3): 1
 
 Current situation:
 History:
 {previous_outputs}
-Your choice (1, 2, or 3):""" 
+Your choice (1, 2, or 3):"""
 
 
 prompt_four = f"""You are a decision-making agent. Your task is to choose the slot machine most likely to win.
@@ -72,29 +83,37 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4. Do not include any other words or formatting.
 
 Example 1:
+# Analysis: Machine 4 has 2 wins/0 losses (100%). Machine 1 has 1 win/1 loss (50%). Machine 2 has 1 win/1 loss (50%). Machine 3 has 0 wins/2 losses (0%). Machine 4 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
-Slot Machine 3 won
-Slot Machine 4 lost
-Slot Machine 1 lost
+Slot Machine 3 lost
 Slot Machine 4 won
-Your choice (1, 2, 3, or 4): 2
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 3 lost
+Slot Machine 4 won
+Your choice (1, 2, 3, or 4): 4
 
 Example 2:
+# Analysis: Machine 1 has 3 wins/0 losses (100%). Machine 2 has 2 wins/1 loss (67%). Machine 3 has 1 win/1 loss (50%). Machine 4 has 0 wins/2 losses (0%). Machine 1 is the best.
 History:
+Slot Machine 2 won
 Slot Machine 3 won
-Slot Machine 4 won
-Slot Machine 2 lost
+Slot Machine 1 won
+Slot Machine 4 lost
+Slot Machine 2 won
 Slot Machine 1 won
 Slot Machine 3 lost
 Slot Machine 4 lost
-Your choice (1, 2, 3, or 4): 3
+Slot Machine 1 won
+Slot Machine 2 lost
+Your choice (1, 2, 3, or 4): 1
 
 Current situation:
 History:
 {previous_outputs}
-Your choice (1, 2, 3, or 4):""" 
+Your choice (1, 2, 3, or 4):"""
 
 
 prompt_five = f"""You are a decision-making agent. Your task is to choose the slot machine most likely to win.
@@ -102,29 +121,38 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4 or 5. Do not include any other words or formatting.
 
 Example 1:
+# Analysis: Machine 2 has 3 wins/0 losses (100%). Machine 5 has 2 wins/1 loss (67%). Others are worse. Machine 2 is the best.
 History:
 Slot Machine 5 won
 Slot Machine 1 lost
-Slot Machine 3 won
-Slot Machine 4 lost
 Slot Machine 2 won
+Slot Machine 4 lost
+Slot Machine 5 won
+Slot Machine 2 won
+Slot Machine 3 lost
 Slot Machine 5 lost
-Your choice (1, 2, 3, 4, or 5): 5
+Slot Machine 2 won
+Your choice (1, 2, 3, 4, or 5): 2
 
 Example 2:
+# Analysis: Machine 5 has 2 wins/0 losses (100%). Machine 3 has 2 wins/1 loss (67%). Others are worse. Machine 5 is the best.
 History:
 Slot Machine 3 won
-Slot Machine 1 won
+Slot Machine 1 lost
 Slot Machine 2 won
 Slot Machine 4 lost
-Slot Machine 5 lost
+Slot Machine 5 won
+Slot Machine 2 lost
+Slot Machine 3 won
+Slot Machine 1 lost
+Slot Machine 5 won
 Slot Machine 3 lost
-Your choice (1, 2, 3, 4, or 5): 2
+Your choice (1, 2, 3, 4, or 5): 5
 
 Current situation:
 History:
 {previous_outputs}
-Your choice (1, 2, 3, 4, or 5):""" 
+Your choice (1, 2, 3, 4, or 5):"""
 
 prompt_dict = {
     '1': prompt_two,
