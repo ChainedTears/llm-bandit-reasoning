@@ -14,7 +14,6 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
 
 Example 1:
-# Analysis: Machine 1 has 3 wins/1 loss (75%). Machine 2 has 1 win/3 losses (25%). Machine 1 is better.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
@@ -27,7 +26,6 @@ Slot Machine 2 lost
 Your choice (1 or 2): 1
 
 Example 2:
-# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 2 is better.
 History:
 Slot Machine 2 won
 Slot Machine 1 lost
@@ -50,7 +48,6 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 1 has 3 wins/1 loss (75%). Machine 2 has 1 win/3 losses (25%). Machine 3 has 2 wins/2 losses (50%). Machine 1 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
@@ -65,7 +62,6 @@ Slot Machine 1 lost
 Your choice (1, 2, or 3): 1
 
 Example 2:
-# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 3 has 2 wins/2 losses (50%). Machine 2 is the best.
 History:
 Slot Machine 2 won
 Slot Machine 1 lost
@@ -80,7 +76,6 @@ Slot Machine 2 lost
 Your choice (1, 2, or 3): 2
 
 Example 3:
-# Analysis: Machine 3 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 2 has 2 wins/2 losses (50%). Machine 3 is the best.
 History:
 Slot Machine 3 won
 Slot Machine 1 lost
@@ -105,7 +100,6 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 1 has 3 wins/1 loss (75%). Others are worse. Machine 1 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
@@ -122,7 +116,6 @@ Slot Machine 4 lost
 Your choice (1, 2, 3, or 4): 1
 
 Example 2:
-# Analysis: Machine 2 has 3 wins/1 loss (75%). Others are worse. Machine 2 is the best.
 History:
 Slot Machine 2 won
 Slot Machine 1 lost
@@ -139,7 +132,6 @@ Slot Machine 4 lost
 Your choice (1, 2, 3, or 4): 2
 
 Example 3:
-# Analysis: Machine 3 has 3 wins/1 loss (75%). Others are worse. Machine 3 is the best.
 History:
 Slot Machine 3 won
 Slot Machine 1 lost
@@ -156,7 +148,6 @@ Slot Machine 4 lost
 Your choice (1, 2, 3, or 4): 3
 
 Example 4:
-# Analysis: Machine 4 has 3 wins/1 loss (75%). Others are worse. Machine 4 is the best.
 History:
 Slot Machine 4 won
 Slot Machine 1 lost
@@ -183,7 +174,6 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4 or 5. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 1 has 3 wins/1 loss (75%). Others are worse. Machine 1 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
@@ -203,7 +193,6 @@ Slot Machine 5 won
 Your choice (1, 2, 3, 4, or 5): 1
 
 Example 2:
-# Analysis: Machine 2 has 3 wins/1 loss (75%). Others are worse. Machine 2 is the best.
 History:
 Slot Machine 2 won
 Slot Machine 1 lost
@@ -223,7 +212,6 @@ Slot Machine 5 won
 Your choice (1, 2, 3, 4, or 5): 2
 
 Example 3:
-# Analysis: Machine 3 has 3 wins/1 loss (75%). Others are worse. Machine 3 is the best.
 History:
 Slot Machine 3 won
 Slot Machine 1 lost
@@ -243,7 +231,6 @@ Slot Machine 5 won
 Your choice (1, 2, 3, 4, or 5): 3
 
 Example 4:
-# Analysis: Machine 4 has 3 wins/1 loss (75%). Others are worse. Machine 4 is the best.
 History:
 Slot Machine 4 won
 Slot Machine 1 lost
@@ -263,7 +250,6 @@ Slot Machine 5 won
 Your choice (1, 2, 3, 4, or 5): 4
 
 Example 5:
-# Analysis: Machine 5 has 3 wins/1 loss (75%). Others are worse. Machine 5 is the best.
 History:
 Slot Machine 5 won
 Slot Machine 1 lost
