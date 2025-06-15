@@ -336,10 +336,12 @@ valid_choices_dict = {
 #     receive = input("Please select the option amount (using a number from 1-4): \n (1) Two \n (2) Three \n (3) Four \n (4) Five \n Select here: ")
 # prompt_type = prompt_dict[receive]
 
-for i in list(model_dict.values()):
+
+# fuckass variables
+for keurycfgbv in list(model_dict.values()):
     for prompt in list(prompt_dict.values()):
-        print(f"Testing {i} with {prompt}")
-        model_id = i
+        print(f"Testing {keurycfgbv} with {prompt}")
+        model_id = keurycfgbv
         prompt_type = prompt
 
         best_machine_dict = {
