@@ -466,21 +466,36 @@ def main():
             # print(f"Updated History (last 5 lines):\n{''.join(previous_outputs.splitlines(True)[-5:])}")
 
 if __name__ == "__main__":
-    for i in range(500):
-        print(f"------------- Test {i+1} -------------")
-        main()
-    # Writes output into result.txt; in case connection closes for runpod
-    with open("result.txt", "w") as f:
-        if isinstance(global_history, list):
-            for item in global_history:
-                f.write(str(item) + ", ")
-        else:
-            f.write(str(global_history) + "\n")
+    # Test all combinations of models and prompts
+    for model_key, model_id in model_dict.items():
+        for prompt_key, prompt_type in prompt_dict.items():
+            print(f"\nTesting Model {model_key} ({model_id}) with Prompt {prompt_key}")
             
-        average_ratio = sum(global_history) / len(global_history)
-        print(f"Average ratio: {average_ratio:.2f}\n")
-        f.write(f"Average ratio: {average_ratio:.2f}\n")
-        raw_accuracy = correct_counter / 500
-        print(f"Raw accuracy: {raw_accuracy}\n")
-        f.write(f"Raw accuracy: {raw_accuracy}\n")
-    print("Results have been written to result.txt")
+            # Reset global variables for each test
+            global_history = []
+            correct_counter = 0
+            previous_outputs = ""
+            
+            # Run the tests
+            for i in range(500):
+                print(f"------------- Test {i+1} -------------")
+                main()
+            
+            # Save results to file
+            output_filename = f"{model_id.split('/')[-1]}-{prompt_key}.txt"
+            with open(output_filename, "w") as f:
+                if isinstance(global_history, list):
+                    for item in global_history:
+                        f.write(str(item) + ", ")
+                else:
+                    f.write(str(global_history) + "\n")
+                
+                average_ratio = sum(item[0] for item in global_history) / len(global_history) if global_history else 0
+                print(f"Average ratio: {average_ratio:.2f}\n")
+                f.write(f"Average ratio: {average_ratio:.2f}\n")
+                
+                raw_accuracy = correct_counter / 500
+                print(f"Raw accuracy: {raw_accuracy}\n")
+                f.write(f"Raw accuracy: {raw_accuracy}\n")
+            
+            print(f"Results have been written to {output_filename}")
