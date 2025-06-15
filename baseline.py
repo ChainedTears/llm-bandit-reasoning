@@ -14,27 +14,30 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number '1' or the number '2'. Do not include any other words, explanations, or formatting.
 
 Example 1:
-# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 2 wins/2 losses (50%). Machine 2 is better.
+# Analysis: Machine 1 has 3 wins/1 loss (75%). Machine 2 has 1 win/3 losses (25%). Machine 1 is better.
 History:
-Slot Machine 1 won
-Slot Machine 2 won
-Slot Machine 1 lost
-Slot Machine 2 won
 Slot Machine 1 won
 Slot Machine 2 lost
-Slot Machine 1 lost
-Slot Machine 2 won
-Your choice (1 or 2): 2
-
-Example 2:
-# Analysis: Machine 1 has 2 wins/1 loss (67%). Machine 2 has 1 win/2 losses (33%). Machine 1 is better.
-History:
+Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 1 won
 Slot Machine 2 won
-Slot Machine 1 won
+Slot Machine 1 lost
 Slot Machine 2 lost
 Your choice (1 or 2): 1
+
+Example 2:
+# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 2 is better.
+History:
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 1 lost
+Your choice (1 or 2): 2
 
 Current situation:
 History:
@@ -47,30 +50,49 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 3 has 3 wins/1 loss (75%). Machine 1 has 2 wins/1 loss (67%). Machine 2 has 0 wins/2 losses (0%). Machine 3 is the best.
+# Analysis: Machine 1 has 3 wins/1 loss (75%). Machine 2 has 1 win/3 losses (25%). Machine 3 has 2 wins/2 losses (50%). Machine 1 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 3 won
 Slot Machine 1 won
-Slot Machine 3 won
-Slot Machine 2 lost
 Slot Machine 3 lost
+Slot Machine 2 lost
+Slot Machine 1 won
 Slot Machine 3 won
-Your choice (1, 2, or 3): 3
+Slot Machine 2 won
+Slot Machine 1 lost
+Your choice (1, 2, or 3): 1
 
 Example 2:
-# Analysis: Machine 1 has 2 wins/0 losses (100%). Machine 3 has 2 wins/1 loss (67%). Machine 2 has 1 win/2 losses (33%). Machine 1 is the best.
+# Analysis: Machine 2 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 3 has 2 wins/2 losses (50%). Machine 2 is the best.
 History:
 Slot Machine 2 won
-Slot Machine 1 won
+Slot Machine 1 lost
 Slot Machine 3 won
-Slot Machine 2 lost
+Slot Machine 2 won
 Slot Machine 3 lost
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 3 won
 Slot Machine 1 won
 Slot Machine 2 lost
+Your choice (1, 2, or 3): 2
+
+Example 3:
+# Analysis: Machine 3 has 3 wins/1 loss (75%). Machine 1 has 1 win/3 losses (25%). Machine 2 has 2 wins/2 losses (50%). Machine 3 is the best.
+History:
 Slot Machine 3 won
-Your choice (1, 2, or 3): 1
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 3 won
+Slot Machine 2 lost
+Slot Machine 1 lost
+Slot Machine 3 won
+Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 3 lost
+Your choice (1, 2, or 3): 3
 
 Current situation:
 History:
@@ -83,32 +105,72 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 4 has 2 wins/0 losses (100%). Machine 1 has 1 win/1 loss (50%). Machine 2 has 1 win/1 loss (50%). Machine 3 has 0 wins/2 losses (0%). Machine 4 is the best.
+# Analysis: Machine 1 has 3 wins/1 loss (75%). Others are worse. Machine 1 is the best.
 History:
 Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 3 lost
+Slot Machine 4 lost
+Slot Machine 1 won
+Slot Machine 2 won
+Slot Machine 3 lost
+Slot Machine 4 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 won
+Slot Machine 4 lost
+Your choice (1, 2, 3, or 4): 1
+
+Example 2:
+# Analysis: Machine 2 has 3 wins/1 loss (75%). Others are worse. Machine 2 is the best.
+History:
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 3 lost
+Slot Machine 4 lost
+Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 3 lost
+Slot Machine 4 won
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 3 won
+Slot Machine 4 lost
+Your choice (1, 2, 3, or 4): 2
+
+Example 3:
+# Analysis: Machine 3 has 3 wins/1 loss (75%). Others are worse. Machine 3 is the best.
+History:
+Slot Machine 3 won
+Slot Machine 1 lost
+Slot Machine 2 lost
+Slot Machine 4 lost
+Slot Machine 3 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 4 won
+Slot Machine 3 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 4 lost
+Your choice (1, 2, 3, or 4): 3
+
+Example 4:
+# Analysis: Machine 4 has 3 wins/1 loss (75%). Others are worse. Machine 4 is the best.
+History:
+Slot Machine 4 won
+Slot Machine 1 lost
+Slot Machine 2 lost
+Slot Machine 3 lost
+Slot Machine 4 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 won
 Slot Machine 4 won
 Slot Machine 1 lost
 Slot Machine 2 won
 Slot Machine 3 lost
-Slot Machine 4 won
 Your choice (1, 2, 3, or 4): 4
-
-Example 2:
-# Analysis: Machine 1 has 3 wins/0 losses (100%). Machine 2 has 2 wins/1 loss (67%). Machine 3 has 1 win/1 loss (50%). Machine 4 has 0 wins/2 losses (0%). Machine 1 is the best.
-History:
-Slot Machine 2 won
-Slot Machine 3 won
-Slot Machine 1 won
-Slot Machine 4 lost
-Slot Machine 2 won
-Slot Machine 1 won
-Slot Machine 3 lost
-Slot Machine 4 lost
-Slot Machine 1 won
-Slot Machine 2 lost
-Your choice (1, 2, 3, or 4): 1
 
 Current situation:
 History:
@@ -121,32 +183,103 @@ Based on the history of wins and losses, decide which machine to play next.
 Output ONLY the number 1 or 2 or 3 or 4 or 5. Do not include any other words or formatting.
 
 Example 1:
-# Analysis: Machine 2 has 3 wins/0 losses (100%). Machine 5 has 2 wins/1 loss (67%). Others are worse. Machine 2 is the best.
+# Analysis: Machine 1 has 3 wins/1 loss (75%). Others are worse. Machine 1 is the best.
 History:
-Slot Machine 5 won
-Slot Machine 1 lost
-Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 lost
 Slot Machine 4 lost
-Slot Machine 5 won
+Slot Machine 5 lost
+Slot Machine 1 won
 Slot Machine 2 won
 Slot Machine 3 lost
+Slot Machine 4 won
 Slot Machine 5 lost
-Slot Machine 2 won
-Your choice (1, 2, 3, 4, or 5): 2
-
-Example 2:
-# Analysis: Machine 5 has 2 wins/0 losses (100%). Machine 3 has 2 wins/1 loss (67%). Others are worse. Machine 5 is the best.
-History:
-Slot Machine 3 won
-Slot Machine 1 lost
-Slot Machine 2 won
-Slot Machine 4 lost
-Slot Machine 5 won
+Slot Machine 1 won
 Slot Machine 2 lost
 Slot Machine 3 won
-Slot Machine 1 lost
+Slot Machine 4 lost
 Slot Machine 5 won
+Your choice (1, 2, 3, 4, or 5): 1
+
+Example 2:
+# Analysis: Machine 2 has 3 wins/1 loss (75%). Others are worse. Machine 2 is the best.
+History:
+Slot Machine 2 won
+Slot Machine 1 lost
 Slot Machine 3 lost
+Slot Machine 4 lost
+Slot Machine 5 lost
+Slot Machine 2 won
+Slot Machine 1 won
+Slot Machine 3 lost
+Slot Machine 4 won
+Slot Machine 5 lost
+Slot Machine 2 won
+Slot Machine 1 lost
+Slot Machine 3 won
+Slot Machine 4 lost
+Slot Machine 5 won
+Your choice (1, 2, 3, 4, or 5): 2
+
+Example 3:
+# Analysis: Machine 3 has 3 wins/1 loss (75%). Others are worse. Machine 3 is the best.
+History:
+Slot Machine 3 won
+Slot Machine 1 lost
+Slot Machine 2 lost
+Slot Machine 4 lost
+Slot Machine 5 lost
+Slot Machine 3 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 4 won
+Slot Machine 5 lost
+Slot Machine 3 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 4 lost
+Slot Machine 5 won
+Your choice (1, 2, 3, 4, or 5): 3
+
+Example 4:
+# Analysis: Machine 4 has 3 wins/1 loss (75%). Others are worse. Machine 4 is the best.
+History:
+Slot Machine 4 won
+Slot Machine 1 lost
+Slot Machine 2 lost
+Slot Machine 3 lost
+Slot Machine 5 lost
+Slot Machine 4 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 won
+Slot Machine 5 lost
+Slot Machine 4 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 3 lost
+Slot Machine 5 won
+Your choice (1, 2, 3, 4, or 5): 4
+
+Example 5:
+# Analysis: Machine 5 has 3 wins/1 loss (75%). Others are worse. Machine 5 is the best.
+History:
+Slot Machine 5 won
+Slot Machine 1 lost
+Slot Machine 2 lost
+Slot Machine 3 lost
+Slot Machine 4 lost
+Slot Machine 5 won
+Slot Machine 1 won
+Slot Machine 2 lost
+Slot Machine 3 won
+Slot Machine 4 lost
+Slot Machine 5 won
+Slot Machine 1 lost
+Slot Machine 2 won
+Slot Machine 3 lost
+Slot Machine 4 won
 Your choice (1, 2, 3, 4, or 5): 5
 
 Current situation:
@@ -400,7 +533,7 @@ for model in list(model_dict.values()):
         def main():
             cumulative_reward = 0
             global previous_outputs
-            correct_ai_choices, total_ai_decisions, previous_ai_choice = 0, 0, 1 # Metrics for AI
+            correct_ai_choices, total_ai_decisions, previous_ai_choice = 0, 0, 0 # Metrics for AI
 
             max_iterations = 25 # Number of decisions the AI will make
             iteration_results = [] 
@@ -474,7 +607,6 @@ for model in list(model_dict.values()):
 
         if __name__ == "__main__":
             for i in range(500):
-                previous_outputs = ""
                 print(f"------------- Test {i+1} -------------")
                 main()
             # Writes output into result.txt; in case connection closes for runpod
