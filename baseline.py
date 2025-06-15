@@ -476,7 +476,11 @@ for model in list(model_dict.values()):
                 print(f"------------- Test {i+1} -------------")
                 main()
             # Writes output into result.txt; in case connection closes for runpod
-            with open("result.txt", "w") as f:
+            for key, value in prompt_dict.items():
+                if value == prompt_type:
+                    prompt_key = key
+                    
+            with open(f"{model_id}-{prompt_key}.txt", "w") as f:
                 if isinstance(global_history, list):
                     for item in global_history:
                         f.write(str(item) + ", ")
