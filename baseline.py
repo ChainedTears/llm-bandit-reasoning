@@ -8,7 +8,6 @@ import re
 login(token="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")
 
 previous_outputs = ""
-previous_outputs = ""
 
 prompt_two = f"""You are a decision-making agent. Your task is to choose between slot machine 1 or 2.
 Based on the history of wins and losses, decide which machine to play next.
@@ -473,6 +472,7 @@ for model in model_dict:
 
         if __name__ == "__main__":
             for i in range(500):
+                previous_outputs = ""
                 print(f"------------- Test {i+1} -------------")
                 main()
             # Writes output into result.txt; in case connection closes for runpod
