@@ -205,6 +205,7 @@ valid_choices_dict = {
 
 for model in list(model_dict.values()):
     for prompt in list(prompt_dict.values()):
+        print(f"Testing {model} with {prompt}")
         model_id = model
         prompt_type = prompt
 
@@ -405,13 +406,13 @@ for model in list(model_dict.values()):
             iteration_results = [] 
             for i in range(max_iterations):
                 iteration_num = i + 1
-                print(f"------------- Iteration {iteration_num} -------------")
+                # print(f"------------- Iteration {iteration_num} -------------")
 
                 # Construct the prompt: Strong instructions + Few-shot examples
                 prompt = prompt_type.format(previous_outputs=previous_outputs)
 
                 ai_response_raw = get_response(prompt)
-                print(f"Raw AI Response: {ai_response_raw}")
+                # print(f"Raw AI Response: {ai_response_raw}")
 
                 ai_choice = None
                 # Stricter parsing: expect '1' or '2' at the beginning of the response
@@ -441,7 +442,7 @@ for model in list(model_dict.values()):
 
 
 
-                print(f"AI chose: Machine {ai_choice}")
+                # print(f"AI chose: Machine {ai_choice}")
 
                 total_ai_decisions += 1
                 # Machine 2 is objectively better (65% win rate).
@@ -459,9 +460,10 @@ for model in list(model_dict.values()):
                 global correct_counter
                 correct_counter += 1 if result == "won" else 0
 
-                print(f"Outcome: Machine {ai_choice} {result}.")
+                # print(f"Outcome: Machine {ai_choice} {result}.")
                 current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
-                print(f"AI 'Correct Choice' (picked Machine {best_machine}) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
+                # print(f"AI 'Correct Choice' (picked Machine {best_machine}) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
+                print(f"Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
             
             final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
             global_history.append([final_ratio, cumulative_reward])
@@ -479,7 +481,7 @@ for model in list(model_dict.values()):
             for key, value in prompt_dict.items():
                 if value == prompt_type:
                     prompt_key = key
-                    
+
             with open(f"{model_id}-{prompt_key}.txt", "w") as f:
                 if isinstance(global_history, list):
                     for item in global_history:
