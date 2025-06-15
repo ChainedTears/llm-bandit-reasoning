@@ -338,7 +338,7 @@ valid_choices_dict = {
 
 for i in list(model_dict.values()):
     for prompt in list(prompt_dict.values()):
-        print(f"Testing {model} with {prompt}")
+        print(f"Testing {i} with {prompt}")
         model_id = i
         prompt_type = prompt
 
