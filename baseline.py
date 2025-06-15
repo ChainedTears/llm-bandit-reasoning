@@ -193,15 +193,15 @@ valid_choices_dict = {
     prompt_five: [1, 2, 3, 4, 5]
 }
 
-receive = input("Please select the model (using a number from 1-7): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n Select here: ")
-while receive not in model_dict:
-    receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n Select here: ")
-model_id = model_dict[receive]
+# receive = input("Please select the model (using a number from 1-7): \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n Select here: ")
+# while receive not in model_dict:
+#     receive = input("Please select the model: \n (1) Qwen 4B \n (2) Qwen 8B \n (3) Llama 8B \n (4) Mistral 7B \n (5) Phi 2 \n (6) Gemma 3 12B \n Select here: ")
+# model_id = model_dict[receive]
 
-receive = input("Please select the option amount (using a number from 1-4): \n (1) Two \n (2) Three \n (3) Four \n (4) Five \n Select here: ")
-while receive not in prompt_dict:
-    receive = input("Please select the option amount (using a number from 1-4): \n (1) Two \n (2) Three \n (3) Four \n (4) Five \n Select here: ")
-prompt_type = prompt_dict[receive]
+# receive = input("Please select the option amount (using a number from 1-4): \n (1) Two \n (2) Three \n (3) Four \n (4) Five \n Select here: ")
+# while receive not in prompt_dict:
+#     receive = input("Please select the option amount (using a number from 1-4): \n (1) Two \n (2) Three \n (3) Four \n (4) Five \n Select here: ")
+# prompt_type = prompt_dict[receive]
 
 best_machine_dict = {
     prompt_two: 2,
