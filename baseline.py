@@ -622,11 +622,5 @@ for model in list(model_dict.values()):
                         f.write(str(item) + ", ")
                 else:
                     f.write(str(global_history) + "\n")
-                    
-                average_ratio = sum(global_history) / len(global_history)
-                print(f"Average ratio: {average_ratio:.2f}\n")
-                f.write(f"Average ratio: {average_ratio:.2f}\n")
-                raw_accuracy = correct_counter / 500
-                print(f"Raw accuracy: {raw_accuracy}\n")
-                f.write(f"Raw accuracy: {raw_accuracy}\n")
-            print("Results have been written to result.txt")
+                
+            print(f"{safe_model_id}-{prompt_key}.txt")
