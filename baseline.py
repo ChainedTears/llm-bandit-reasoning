@@ -463,7 +463,7 @@ for model in list(model_dict.values()):
                 # print(f"Outcome: Machine {ai_choice} {result}.")
                 current_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
                 # print(f"AI 'Correct Choice' (picked Machine {best_machine}) Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
-                print(f"Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
+                print(f"Response: {ai_response_raw} Ratio: {correct_ai_choices}/{total_ai_decisions} = {current_ratio:.2f}")
             
             final_ratio = correct_ai_choices / total_ai_decisions if total_ai_decisions > 0 else 0
             global_history.append([final_ratio, cumulative_reward])
