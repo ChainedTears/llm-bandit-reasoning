@@ -290,7 +290,7 @@ Your choice (1, 2, 3, 4, or 5):"""
 prompt_dict = {
 #    '1': prompt_two,
 #    '2': prompt_three,
-    '3': prompt_four,
+#    '3': prompt_four,
     '4': prompt_five,
 }
 
