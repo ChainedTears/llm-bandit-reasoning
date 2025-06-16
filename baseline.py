@@ -298,8 +298,8 @@ prompt_dict = {
 # model_id = "meta-llama/Llama-3.2-1B"
 model_dict = {
 #    '1': "Qwen/Qwen3-4B",
-#    '2': "Qwen/Qwen3-8B",
-    '3': "meta-llama/Llama-3.1-8B",
+     '2': "Qwen/Qwen3-8B",
+#    '3': "meta-llama/Llama-3.1-8B",
 #    '4': "deepseek-ai/DeepSeek-R1",
 #    '5': "microsoft/phi-2",
 #    '6': "google/gemma-3-12b-it",
